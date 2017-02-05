@@ -27,8 +27,6 @@ public class MainActivity extends AppCompatActivity {
     // Toolbar
     Toolbar myToolbar;
 
-    // search utility object reference variable for searching in file system -- currently not used
-    // SearchUtility searchUtility;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,8 +50,7 @@ public class MainActivity extends AppCompatActivity {
         datePicker = (DatePicker) findViewById(R.id.datePicker);
         button = (Button) findViewById(R.id.button);
 
-        // search utility object for searching in file system -- currently not used
-        //searchUtility = SearchUtility.getObject();
+
 
     }
 
