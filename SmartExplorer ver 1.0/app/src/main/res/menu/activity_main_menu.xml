@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+    Menu layout file for the main activity toolbar
+    currently it contains just one entry(icon) to show all the important files
+
+-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity">
+
+    <item
+        android:id="@+id/show_all"
+        android:icon="@drawable/ic_action_name"
+        android:onClick="showAllFilesActivity"
+        android:orderInCategory="1"
+        android:title="Show all files"
+        app:showAsAction="ifRoom" />
+</menu>
