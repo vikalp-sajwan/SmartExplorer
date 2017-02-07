@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
         // getting runtime permission for reading storage on marshmallow and above
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 1);
+            requestPermissions(new String[]{"android.permission.WRITE_EXTERNAL_STORAGE"}, 1);
         }
 
         // binding GUI elements in Layout 1
@@ -128,8 +128,8 @@ public class MainActivity extends AppCompatActivity {
      */
     public void searchFilesByName(String searchString) {
         Intent intent = new Intent(this, FilesListViewActivity.class);
-        intent.putExtra("EXTRA_MODE", FilesListViewActivity.SEARCH_BY_NAME);
-        intent.putExtra("EXTRA_SEARCH_STRING", searchString);
+        intent.putExtra(FilesListViewActivity.EXTRA_SEARCH_MODE, FilesListViewActivity.SEARCH_BY_NAME);
+        intent.putExtra(FilesListViewActivity.EXTRA_SEARCH_STRING, searchString);
         startActivity(intent);
 
     }

@@ -2,13 +2,12 @@ package com.example.vikalpsajwan.smartexplorer;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.OpenableColumns;
+import android.os.Environment;
 import android.widget.Toast;
 
-import java.io.File;
+import static android.widget.Toast.LENGTH_LONG;
 
 /**
  * Created by Vikalp on 04/02/2017.
@@ -16,7 +15,7 @@ import java.io.File;
 
 public class AddFileIntentReceiver extends Activity {
 
-    DatabaseHandler dbHandler;
+    private CopyFileUtility cpUtil;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,39 +24,30 @@ public class AddFileIntentReceiver extends Activity {
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
         Uri uri = (Uri) bundle.get(Intent.EXTRA_STREAM);
+        cpUtil = new CopyFileUtility(getApplicationContext());
 
-        // file Uri     --   absolute path is available
-        if (uri.toString().startsWith("file")) {
-            File file = new File(uri.getPath());
-            if (file.exists()) {
-                String filename = file.getName();
-                String filePath = file.toString();
-
-                dbHandler = DatabaseHandler.getDBInstance(getApplicationContext());
-                dbHandler.addFile(filename, filePath);
-
-                Toast.makeText(getApplicationContext(), "ADDED Successfully PATH - " + filePath, Toast.LENGTH_LONG).show();
-            } else {
-                Toast.makeText(getApplicationContext(), "!!!!! PATH - " + file.toString(), Toast.LENGTH_LONG).show();
-            }
-        }
-        //content Uri  ---   cant get the file path---- cannot ADD in database ----optional solution - search by getting filename
-        else {
-            Cursor returnCursor = getContentResolver().query(uri, null, null, null, null);
-
-            int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-            int sizeIndex = returnCursor.getColumnIndex(OpenableColumns.SIZE);
-            returnCursor.moveToFirst();
-            Toast.makeText(getApplicationContext(), "content Uri____" + returnCursor.getString(nameIndex) + "_____" + Long.toString(returnCursor.getLong(sizeIndex)), Toast.LENGTH_LONG).show();
+        // check if the external storage is mounted
+        if(!isExternalStorageWritable()) {
+            Toast.makeText(getApplicationContext(),"External Storage not Mounted !! Try again later.", LENGTH_LONG).show();
+            this.finish();
+            return;
         }
 
+        // start a background Async task to copy file from intent uri to app's private storage space
+        cpUtil.execute(uri);
         this.finish();
+    }
+
+    public boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            return true;
+        }
+        return false;
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(dbHandler != null)
-            dbHandler.close();
     }
 }
