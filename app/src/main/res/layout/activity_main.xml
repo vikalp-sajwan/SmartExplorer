@@ -43,25 +43,23 @@
 
             <EditText
                 android:id="@+id/editText"
-                style="@android:style/Widget.Holo.EditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Enter search string"
                 android:inputType="text" />
 
             <CheckBox
-                android:id="@+id/checkBoxDOM"
+                android:id="@+id/checkBoxTag"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Search by Date of Modification" />
+                android:text="Search by Tagname" />
 
-            <DatePicker
-                android:id="@+id/datePicker"
-                android:layout_width="wrap_content"
+            <AutoCompleteTextView
+                android:id="@+id/actvTag"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:calendarViewShown="false"
-                android:datePickerMode="spinner"
-                android:layout_gravity="center_horizontal" />
+                android:hint="Enter tag" />
+
 
         </LinearLayout>
     </ScrollView>

@@ -13,6 +13,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 
 
 /**
@@ -21,41 +23,29 @@ import java.io.IOException;
 
 public class CopyFileUtility extends AsyncTask<Uri, Void, Void> {
 
-    Context context;
+    private Context context;
     private DatabaseHandler dbHandler;
+    private ArrayList<String> fileTags;
+    private String fileName;
 
-    public CopyFileUtility(Context context) {
-
+    public CopyFileUtility(Context context, ArrayList<String> fileTags, String filename) {
+        this.fileTags = fileTags;
         this.context = context;
+        this.fileName = filename;
     }
 
     @Override
-    protected Void doInBackground(Uri... uris) {
+    protected Void doInBackground(Uri... uris ) {
 
         ContentResolver cr = context.getContentResolver();
         //notificationManager = new (NotificationManager)getSystemService(context.NOTIFICATION_SERVICE);
 
-        for (Uri source : uris) {
+
+        for (Uri sourceUri : uris) {
             try {
 
-                // get file name based on type Uri
-                String fileName;
-                // file type Uri
-                if (source.toString().startsWith("file")) {
-                    File file = new File(source.getPath());
-                    fileName = file.getName();
-                }
-                // content Uri
-                else {
-                    Cursor returnCursor = cr.query(source, null, null, null, null);
-                    int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                    returnCursor.moveToFirst();
-                    fileName = returnCursor.getString(nameIndex);
-                    returnCursor.close();
-                }
-
-                // open FileInputStream from source
-                FileInputStream in = (FileInputStream) cr.openInputStream(source);
+                // open FileInputStream from sourceUri
+                FileInputStream in = (FileInputStream) cr.openInputStream(sourceUri);
 
                 // get destination directory and open FileOutputStream for destination
                 // method 1 - save in private space in external storage
@@ -84,26 +74,33 @@ public class CopyFileUtility extends AsyncTask<Uri, Void, Void> {
                 out.close();
                 out = null;
 
-                // add entry in app database
+                // add entry of file in app database and save the autoincrement id of file
                 dbHandler = DatabaseHandler.getDBInstance(context);
-                dbHandler.addFile(fileName, dest.getAbsolutePath());
+                long insertedFileId = dbHandler.addFile(fileName, dest.getAbsolutePath());
 
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                for(String tag: fileTags){
+                    long tagId = dbHandler.isTagPresent(tag);
+
+                    if(tagId == -1){    // tag does not exist in table - add the tag to database
+                        tagId = dbHandler.addTag(tag);
+                    }
+
+                    // add entry in the fileTag table
+                    dbHandler.addFileTagEntry(insertedFileId, tagId);
+                }
+
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
         }
         return null;
-
     }
 
     @Override
     protected void onPostExecute(Void aVoid) {
         Toast.makeText(context, "File added successfully", Toast.LENGTH_LONG).show();
-        if (dbHandler != null)
-            dbHandler.close();
 
         super.onPostExecute(aVoid);
     }

@@ -8,21 +8,26 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity {
 
     // GUI elements layout 1
-    EditText editText;
+    EditText editTextSearch;
     CheckBox checkBoxName;
-    CheckBox checkBoxDOM;
-    DatePicker datePicker;
-    Button button;
+    CheckBox checkBoxTag;
+    AutoCompleteTextView actvTag;
+    Button buttonSearch;
+
+    private DatabaseHandler dbHandler;
 
     // Toolbar
     Toolbar myToolbar;
@@ -44,13 +49,18 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // binding GUI elements in Layout 1
-        editText = (EditText) findViewById(R.id.editText);
+        editTextSearch = (EditText) findViewById(R.id.editText);
         checkBoxName = (CheckBox) findViewById(R.id.checkBoxName);
-        checkBoxDOM = (CheckBox) findViewById(R.id.checkBoxDOM);
-        datePicker = (DatePicker) findViewById(R.id.datePicker);
-        button = (Button) findViewById(R.id.button);
+        checkBoxTag = (CheckBox) findViewById(R.id.checkBoxTag);
+        buttonSearch = (Button) findViewById(R.id.button);
+        actvTag = (AutoCompleteTextView) findViewById(R.id.actvTag);
 
+        dbHandler = DatabaseHandler.getDBInstance(getApplicationContext());
 
+        ArrayList<String> autoCompleteTagList = dbHandler.getTagNames();
+        ArrayAdapter<String> autoCompleteAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);
+        actvTag.setThreshold(1);
+        actvTag.setAdapter(autoCompleteAdapter);
 
     }
 
@@ -68,35 +78,38 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * called on clicking Search button in initial Layout
+     * called on clicking Search buttonSearch in initial Layout
      *
      * @param view
      */
     public void search(View view) {
-        if (checkBoxDOM.isChecked() || checkBoxName.isChecked()) {
+        if (checkBoxTag.isChecked() || checkBoxName.isChecked()) {
 
-            String searchString = editText.getText().toString();
-            int day = datePicker.getDayOfMonth();
-            int month = datePicker.getMonth();
-            int year = datePicker.getYear();
+            String searchString = editTextSearch.getText().toString();
+            String tag = actvTag.getText().toString();
 
             if (checkBoxName.isChecked()) {
                 if (searchString.trim().isEmpty()) {
-                    Toast t = Toast.makeText(getApplicationContext(), "please enter valid search string", Toast.LENGTH_SHORT);
-                    t.show();
+                    Toast.makeText(getApplicationContext(), "please enter valid search string", Toast.LENGTH_SHORT).show();
                     return;
                 }
             }
 
-            if (!checkBoxDOM.isChecked()) {
-                searchFilesByName(searchString);
-                ;
+            if (checkBoxTag.isChecked()) {
+                if (tag.trim().isEmpty()) {
+                    Toast.makeText(getApplicationContext(), "please enter valid tag name", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+
+            if (!checkBoxTag.isChecked()) {
+                searchByName(searchString);
             } else if (!checkBoxName.isChecked()) {
-                // case for searching based on date of modification
-                // not implemented
+                // case for searching by tag
+                searchByTag(tag);
             } else {
-                // case for searching with both name and date of modification
-                // not implemented
+                // case for searching with both name and tag
+                searchByNameAndTag(searchString, tag);
             }
 
 
@@ -106,31 +119,42 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Toast t = Toast.makeText(getApplicationContext(), "please select at least one of checkboxes", Toast.LENGTH_SHORT);
             t.show();
-            return;
         }
 
     }
 
+
     /**
-     * function to show all files activity when clicked on the button on the Toolbar
+     * function to show all files activity when clicked on the buttonSearch on the Toolbar
      *
-     * @param item
      */
     public void showAllFilesActivity(MenuItem item) {
         Intent intent = new Intent(this, FilesListViewActivity.class);
-        intent.putExtra("EXTRA_MODE", FilesListViewActivity.SHOW_ALL);
+        intent.putExtra(FilesListViewActivity.EXTRA_SEARCH_MODE, FilesListViewActivity.SHOW_ALL);
         startActivity(intent);
+    }
+
+    private void searchByTag(String tag) {
+        Intent intent = new Intent(this, FilesListViewActivity.class);
+        intent.putExtra(FilesListViewActivity.EXTRA_SEARCH_MODE, FilesListViewActivity.SEARCH_BY_NAME);
+        intent.putExtra(FilesListViewActivity.EXTRA_SEARCH_STRING, tag);
+        startActivity(intent);
+    }
+
+
+    public void searchByNameAndTag(String searchString, String tag) {
 
     }
 
     /**
      * function to search by name in the sqlite database
      */
-    public void searchFilesByName(String searchString) {
+    public void searchByName(String searchString) {
         Intent intent = new Intent(this, FilesListViewActivity.class);
         intent.putExtra(FilesListViewActivity.EXTRA_SEARCH_MODE, FilesListViewActivity.SEARCH_BY_NAME);
         intent.putExtra(FilesListViewActivity.EXTRA_SEARCH_STRING, searchString);
         startActivity(intent);
 
     }
+
 }

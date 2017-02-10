@@ -6,16 +6,28 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.ArrayList;
+
 /**
  * Created by Vikalp on 05/02/2017.
  */
 
 public class DatabaseHandler extends SQLiteOpenHelper {
     static final String dbName = "SmartExplorerDB";
-    static final String markedFilesTable = "MarkedFiles";
-    static final String colPKid = "_id";
-    static final String colFilename = "Filename";
-    static final String colFileAddress = "FileAddress";
+
+    static final String markedFilesTable = "markedFiles";
+    static final String colfileid = "_id";
+    static final String colfilename = "colfilename";
+    static final String colfileAddress = "colfileAddress";
+
+    static final String tagsTable = "tags";
+    static final String coltagid = "_id";
+    static final String coltagName = "coltagName";
+
+    static final String fileTagTable = "fileTag";
+    static final String colftid = "_id";
+    static final String colFtFileid = "colFtFileid";
+    static final String colFtTagid = "colFtTagid";
 
     private static DatabaseHandler dbHandler;
 
@@ -23,7 +35,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         super(context, dbName, null, 1);
     }
 
-    public static DatabaseHandler getDBInstance(Context context) {
+    static DatabaseHandler getDBInstance(Context context) {
         if (dbHandler == null) {
             dbHandler = new DatabaseHandler(context);
             return dbHandler;
@@ -35,16 +47,53 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        //create files details table
         db.execSQL("CREATE TABLE " +
                 markedFilesTable +
                 " (" +
-                colPKid +
+                colfileid +
                 " INTEGER PRIMARY KEY AUTOINCREMENT , " +
-                colFileAddress +
+                colfileAddress +
                 " TEXT ," +
-                colFilename +
+                colfilename +
                 " TEXT)"
         );
+        // create tags table
+        db.execSQL("CREATE TABLE " +
+                tagsTable +
+                " (" +
+                coltagid +
+                " INTEGER PRIMARY KEY AUTOINCREMENT , " +
+                coltagName +
+                " TEXT)"
+        );
+
+        String[] commonTags = {"work","home","entertainment","project","presentation"};
+        // insert some common tags in tags table
+
+        ContentValues cv = new ContentValues();
+        for (String tag: commonTags) {
+            cv.put(DatabaseHandler.coltagName, tag);
+            db.insert(tagsTable, null, cv);
+            cv.clear();
+        }
+
+        // create file and tag relationship table
+        db.execSQL("CREATE TABLE " +
+                fileTagTable +
+                " (" +
+                colftid +
+                " INTEGER PRIMARY KEY AUTOINCREMENT , " +
+                colFtFileid +
+                " TEXT ," +
+                colFtTagid +
+                " INTEGER," +
+                "FOREIGN KEY (" + colFtFileid +") REFERENCES "+ markedFilesTable + "("+ colfileid +") ," +
+                "FOREIGN KEY (" + colFtTagid +") REFERENCES "+ tagsTable + "("+ coltagid +")" +
+                ")"
+
+        );
+
     }
 
     @Override
@@ -52,29 +101,90 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         // do nothing for now
     }
 
-    public void addFile(String filename, String fileAddress) {
+    long addFile(String filename, String fileAddress) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
-        cv.put(colFileAddress, fileAddress);
-        cv.put(colFilename, filename);
+        cv.put(DatabaseHandler.colfileAddress, fileAddress);
+        cv.put(DatabaseHandler.colfilename, filename);
 
-        db.insert(markedFilesTable, null, cv);
-        db.close();
+        return db.insert(markedFilesTable, null, cv);
     }
 
-    Cursor getAllMarkedFiles() {
-        SQLiteDatabase db = this.getReadableDatabase();
+    /**
+     *  method to check if a tag is present in database or not
+     * @param tagName   name of the tag to be searched in database
+     * @return  -1 if tag is not present else the tagid
+     */
+    long isTagPresent(String tagName){
+        SQLiteDatabase db = dbHandler.getReadableDatabase();
+        long returnValue = -1;
+        Cursor cur = db.rawQuery("SELECT "+ coltagid +" FROM " +
+                tagsTable +
+                " WHERE " +
+                coltagName +
+                " = \"" +
+                tagName + "\"", null);
+
+        if(cur.getCount() == 0)
+            return returnValue;
+        else{
+            cur.moveToFirst();
+            int colIndex = cur.getColumnIndex(coltagid);
+            returnValue = cur.getLong(colIndex);
+        }
+        if(cur == null)
+            cur.close();
+        return returnValue;
+    }
+
+    /**
+     *  method to add a new tag in the database
+     * @param tagName
+     * @return
+     */
+    long addTag(String tagName){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(DatabaseHandler.coltagName, tagName);
+
+        return db.insert(tagsTable, null, cv);
+    }
+
+    /**
+     *  method to add fileTag entry in the fileTag table
+     * @param fileId
+     * @param tagId
+     */
+    void addFileTagEntry(long fileId, long tagId){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(DatabaseHandler.colFtTagid, fileId);
+        cv.put(DatabaseHandler.colFtTagid, tagId);
+        db.insert(fileTagTable, null, cv);
+    }
+
+    /**
+     * method to return all the files details saved in the database
+     * @return
+     */
+    Cursor getAllFiles() {
+        SQLiteDatabase db = dbHandler.getReadableDatabase();
         Cursor cur = db.rawQuery("SELECT * FROM " + markedFilesTable, null);
         return cur;
     }
 
-    Cursor searchMarkedFilesByName(String searchString) {
-        SQLiteDatabase db = this.getReadableDatabase();
+    /**
+     * method to return the files saved in the database based on a search by filename
+     * @param searchString
+     * @return
+     */
+    Cursor searchFilesByName(String searchString) {
+        SQLiteDatabase db = dbHandler.getReadableDatabase();
         String pattern = "%" + searchString + "%";
         Cursor cur = db.rawQuery("SELECT * FROM " +
                         markedFilesTable +
                         " WHERE " +
-                        colFilename +
+                        colfilename +
                         " LIKE \"" +
                         pattern +
                         "\"",
@@ -84,5 +194,38 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return cur;
     }
 
+    /**
+     * method to return the files saved in the database based on a search by filename
+     * @param tag
+     * @return
+     */
+    Cursor searchFilesByTag(String tag) {
+        SQLiteDatabase db = dbHandler.getReadableDatabase();
+
+        Cursor cur = db.rawQuery("SELECT "+colfilename+", "+colfileAddress+" FROM " +
+                        markedFilesTable + ", " + tagsTable + ", " + fileTagTable +
+                        " WHERE " + markedFilesTable + "." + colfileid + "=" + fileTagTable + "." + colFtFileid +
+                        " AND " + tagsTable + "." + coltagid + "=" + fileTagTable + "." + colFtTagid +
+                        " AND " +
+                        coltagName +
+                        " LIKE \"" +
+                        tag +
+                        "\"",
+                null
+        );
+
+        return cur;
+    }
+
+    ArrayList<String> getTagNames(){
+        SQLiteDatabase db = dbHandler.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT "+ coltagName +" FROM " + tagsTable, null);
+        ArrayList<String> result = new ArrayList<String>();
+        int columnIndex=cursor.getColumnIndex(coltagName);
+        while(cursor.moveToNext()) {
+            result.add(cursor.getString(columnIndex));
+        }
+        return result;
+    }
 
 }

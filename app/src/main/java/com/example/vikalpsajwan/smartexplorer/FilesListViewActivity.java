@@ -1,7 +1,6 @@
 package com.example.vikalpsajwan.smartexplorer;
 
 import android.content.ActivityNotFoundException;
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -22,12 +21,12 @@ public class FilesListViewActivity extends AppCompatActivity {
 
     public static final int SHOW_ALL = 1;
     public static final int SEARCH_BY_NAME = 2;
-    public static final int SEARCH_BY_DOM = 3;
-    public static final int SEARCH_BY_NAME_DOM =4;
+    public static final int SEARCH_BY_TAG= 3;
+    public static final int SEARCH_BY_NAME_TAG =4;
 
     public static final String EXTRA_SEARCH_MODE = "EXTRA_SEARCH_MODE";
     public static final String EXTRA_SEARCH_STRING = "EXTRA_SEARCH_STRING";
-    public static final String EXTRA_SEARCH_DOM = "EXTRA_SEARCH_DOM";
+    public static final String EXTRA_SEARCH_TAG = "EXTRA_SEARCH_TAG";
 
     ListView listView;
     private DatabaseHandler dbHandler;
@@ -43,10 +42,15 @@ public class FilesListViewActivity extends AppCompatActivity {
         int mode = intent.getIntExtra(EXTRA_SEARCH_MODE, 1);
 
         if (mode == SHOW_ALL) {
-            resultCursor = dbHandler.getAllMarkedFiles();
-        } else {
+            resultCursor = dbHandler.getAllFiles();
+        } else if( mode == SEARCH_BY_NAME){
             String searchString = intent.getStringExtra(EXTRA_SEARCH_STRING);
-            resultCursor = dbHandler.searchMarkedFilesByName(searchString);
+            resultCursor = dbHandler.searchFilesByName(searchString);
+        } else if( mode == SEARCH_BY_TAG) {
+            String tag = intent.getStringExtra(EXTRA_SEARCH_TAG);
+            resultCursor = dbHandler.searchFilesByTag(tag);
+        } else{ // search by both name and tag
+
         }
 
         super.onCreate(savedInstanceState);
@@ -55,11 +59,11 @@ public class FilesListViewActivity extends AppCompatActivity {
         listView = (ListView) findViewById(R.id.files_listview);
 
         // source columns from database
-        String[] from = new String[]{DatabaseHandler.colFilename, DatabaseHandler.colFileAddress};
+        String[] from = new String[]{DatabaseHandler.colfilename, DatabaseHandler.colfileAddress};
         // ids of views in listview UI
         int[] to = new int[]{R.id.textview_filename, R.id.textview_filepath};
 
-        listView.setAdapter(new SimpleCursorAdapter(this, R.layout.list_files_listview, resultCursor, from, to, 0));
+        listView.setAdapter(new SimpleCursorAdapter(this, R.layout.list_files_listview_item, resultCursor, from, to, 0));
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
