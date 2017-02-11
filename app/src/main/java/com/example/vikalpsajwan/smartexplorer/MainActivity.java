@@ -136,8 +136,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void searchByTag(String tag) {
         Intent intent = new Intent(this, FilesListViewActivity.class);
-        intent.putExtra(FilesListViewActivity.EXTRA_SEARCH_MODE, FilesListViewActivity.SEARCH_BY_NAME);
-        intent.putExtra(FilesListViewActivity.EXTRA_SEARCH_STRING, tag);
+        intent.putExtra(FilesListViewActivity.EXTRA_SEARCH_MODE, FilesListViewActivity.SEARCH_BY_TAG);
+        intent.putExtra(FilesListViewActivity.EXTRA_SEARCH_TAG, tag);
         startActivity(intent);
     }
 

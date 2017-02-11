@@ -7,7 +7,7 @@ import android.net.Uri;
 import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
-import android.widget.SimpleCursorAdapter;
+import android.widget.CursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.ListView;
@@ -58,12 +58,17 @@ public class FilesListViewActivity extends AppCompatActivity {
 
         listView = (ListView) findViewById(R.id.files_listview);
 
-        // source columns from database
-        String[] from = new String[]{DatabaseHandler.colfilename, DatabaseHandler.colfileAddress};
-        // ids of views in listview UI
-        int[] to = new int[]{R.id.textview_filename, R.id.textview_filepath};
+        // simple cursor adapter
+//        // source columns from database
+//        String[] from = new String[]{DatabaseHandler.colfilename, DatabaseHandler.colfileAddress};
+//        // ids of views in listview UI
+//        int[] to = new int[]{R.id.textview_filename, R.id.textview_filepath};
+//
+//        listView.setAdapter(new SimpleCursorAdapter(this, R.layout.list_files_listview_item, resultCursor, from, to, 0));
 
-        listView.setAdapter(new SimpleCursorAdapter(this, R.layout.list_files_listview_item, resultCursor, from, to, 0));
+        // custom cursor adapter
+        FileListAdapter fla = new FileListAdapter(this, resultCursor, 0);
+        listView.setAdapter(fla);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override

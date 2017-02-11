@@ -132,7 +132,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             int colIndex = cur.getColumnIndex(coltagid);
             returnValue = cur.getLong(colIndex);
         }
-        if(cur == null)
+        if(cur != null)
             cur.close();
         return returnValue;
     }
@@ -158,7 +158,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     void addFileTagEntry(long fileId, long tagId){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
-        cv.put(DatabaseHandler.colFtTagid, fileId);
+        cv.put(DatabaseHandler.colFtFileid, fileId);
         cv.put(DatabaseHandler.colFtTagid, tagId);
         db.insert(fileTagTable, null, cv);
     }
@@ -202,7 +202,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     Cursor searchFilesByTag(String tag) {
         SQLiteDatabase db = dbHandler.getReadableDatabase();
 
-        Cursor cur = db.rawQuery("SELECT "+colfilename+", "+colfileAddress+" FROM " +
+        Cursor cur = db.rawQuery("SELECT * FROM " +
                         markedFilesTable + ", " + tagsTable + ", " + fileTagTable +
                         " WHERE " + markedFilesTable + "." + colfileid + "=" + fileTagTable + "." + colFtFileid +
                         " AND " + tagsTable + "." + coltagid + "=" + fileTagTable + "." + colFtTagid +
@@ -220,12 +220,27 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     ArrayList<String> getTagNames(){
         SQLiteDatabase db = dbHandler.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT "+ coltagName +" FROM " + tagsTable, null);
-        ArrayList<String> result = new ArrayList<String>();
+        ArrayList<String> tags = new ArrayList<String>();
         int columnIndex=cursor.getColumnIndex(coltagName);
         while(cursor.moveToNext()) {
-            result.add(cursor.getString(columnIndex));
+            tags.add(cursor.getString(columnIndex));
         }
-        return result;
+        return tags;
     }
 
+    public ArrayList<String> getAssociatedTags(long fileid) {
+        SQLiteDatabase db = dbHandler.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT "+ coltagName +" FROM "
+                + tagsTable +", "+ fileTagTable +
+                " WHERE " + tagsTable + "." + coltagid + " = " + colFtTagid +
+                " AND " + colFtFileid + " = " + fileid
+                , null);
+
+        ArrayList<String> associatedTags = new ArrayList<String>();
+        int columnIndex=cursor.getColumnIndex(coltagName);
+        while(cursor.moveToNext()) {
+            associatedTags.add(cursor.getString(columnIndex));
+        }
+        return associatedTags;
+    }
 }
