@@ -7,7 +7,6 @@ import android.net.Uri;
 import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
-import android.widget.CursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.ListView;

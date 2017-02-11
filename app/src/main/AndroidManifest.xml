@@ -33,6 +33,17 @@
 
         <activity android:name=".FilesListViewActivity"/>
 
+
+
+
+
+        <activity android:name=".AndroidDatabaseManager"
+            android:theme="@style/Theme.AppCompat.Light"/>
+
+
+
+
+
     </application>
 
 </manifest>

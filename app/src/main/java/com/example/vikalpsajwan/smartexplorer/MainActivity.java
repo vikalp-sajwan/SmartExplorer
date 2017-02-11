@@ -154,7 +154,14 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(FilesListViewActivity.EXTRA_SEARCH_MODE, FilesListViewActivity.SEARCH_BY_NAME);
         intent.putExtra(FilesListViewActivity.EXTRA_SEARCH_STRING, searchString);
         startActivity(intent);
-
     }
+
+
+    public void startDB(View view){
+        Intent intent = new Intent(this, AndroidDatabaseManager.class);
+        startActivity(intent);
+    }
+
+
 
 }

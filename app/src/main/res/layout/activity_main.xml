@@ -61,6 +61,21 @@
                 android:hint="Enter tag" />
 
 
+
+
+
+            <Button
+                android:text="Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/button9"
+                android:onClick="startDB"/>
+
+
+
+
+
+
         </LinearLayout>
     </ScrollView>
 
