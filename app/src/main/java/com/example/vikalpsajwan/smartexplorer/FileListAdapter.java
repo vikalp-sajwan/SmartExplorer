@@ -12,6 +12,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 
+
 /**
  * Created by Vikalp on 11/02/2017.
  */
@@ -24,6 +25,10 @@ public class FileListAdapter extends CursorAdapter {
     int fileIdIndex;
     TextView filenameTV;
     TextView filePathTV;
+
+    LinearLayout tagContainerLL;
+
+
 
 
 
@@ -41,17 +46,6 @@ public class FileListAdapter extends CursorAdapter {
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
         View view = inflater.inflate(R.layout.list_files_listview_item, parent, false);
-        LinearLayout tagContainerLL = (LinearLayout)view.findViewById(R.id.listViewTagContainer);
-
-        // get the file id -- find the associated tags and then add them to tag container
-        long fileid = cursor.getLong(fileIdIndex);
-        ArrayList<String> associatedTags = dbHandler.getAssociatedTags(fileid);
-
-        for(String tag: associatedTags){
-            TextView tv = (TextView) inflater.inflate(R.layout.tag_item, tagContainerLL, false);
-            tv.setText(tag);
-            tagContainerLL.addView(tv);
-        }
         return view;
     }
 
@@ -62,6 +56,20 @@ public class FileListAdapter extends CursorAdapter {
 
         filenameTV.setText(cursor.getString(fileNameIndex));
         filePathTV.setText(cursor.getString(filePathIndex));
+
+
+        tagContainerLL = (LinearLayout) view.findViewById(R.id.listViewTagContainer);
+        tagContainerLL.removeAllViews();
+
+        // get the file id -- find the associated tags and then add them to tag container
+        long fileid = cursor.getLong(fileIdIndex);
+        ArrayList<String> associatedTags = dbHandler.getAssociatedTags(fileid);
+
+        for (String tag : associatedTags) {
+            TextView tv = (TextView) inflater.inflate(R.layout.tag_item, tagContainerLL, false);
+            tv.setText(tag);
+            tagContainerLL.addView(tv);
+        }
 
     }
 }
