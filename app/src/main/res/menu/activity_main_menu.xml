@@ -9,10 +9,18 @@
     tools:context=".MainActivity">
 
     <item
+        android:id="@+id/camera_capture"
+        android:icon="@drawable/ic_capture_image"
+        android:onClick="captureImage"
+        android:title="Capture"
+        app:showAsAction="ifRoom">
+
+    </item>
+
+    <item
         android:id="@+id/show_all"
         android:icon="@drawable/ic_action_name"
         android:onClick="showAllFilesActivity"
-        android:orderInCategory="1"
         android:title="Show all files"
         app:showAsAction="ifRoom" />
 </menu>

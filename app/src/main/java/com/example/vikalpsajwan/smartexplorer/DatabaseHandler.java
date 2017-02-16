@@ -103,6 +103,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         // do nothing for now
     }
 
+    /**
+     * method to add a file entry in the markedFiles table in the database
+     * @param filename
+     * @param fileAddress
+     * @return
+     */
     long addFile(String filename, String fileAddress) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
@@ -197,9 +203,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     * method to return the files saved in the database based on a search by filename
+     * method to return the files saved in the database based on a search by tagname
      * @param tag
-     * @return
+     * @return the cursor containing resultset
      */
     Cursor searchFilesByTag(String tag) {
         SQLiteDatabase db = dbHandler.getReadableDatabase();
@@ -219,6 +225,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return cur;
     }
 
+    /**
+     * method to return all the tagnames stored in the database
+     * @return arraylist of tags stored in the database
+     */
     ArrayList<String> getTagNames(){
         SQLiteDatabase db = dbHandler.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT "+ coltagName +" FROM " + tagsTable, null);
@@ -230,6 +240,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return tags;
     }
 
+    /**
+     * method to query the tags associated with a file from the database
+     * @param fileid   -  id of the file
+     * @return  list of tags
+     */
     public ArrayList<String> getAssociatedTags(long fileid) {
         SQLiteDatabase db = dbHandler.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT "+ coltagName +" FROM "
@@ -246,24 +261,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return associatedTags;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    /**
+     * helper function for the third party Database viewer feature
+     * @param Query
+     * @return
+     */
     public ArrayList<Cursor> getData(String Query){
         //get writable database
         SQLiteDatabase sqlDB = this.getWritableDatabase();

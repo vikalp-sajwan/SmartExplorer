@@ -63,7 +63,7 @@
 
 
 
-
+            <!--    Button for third party database viewing feature    -->
             <Button
                 android:text="View SQLite Database"
                 android:layout_width="match_parent"

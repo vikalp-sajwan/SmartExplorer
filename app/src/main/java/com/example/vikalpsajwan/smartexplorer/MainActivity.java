@@ -2,6 +2,7 @@ package com.example.vikalpsajwan.smartexplorer;
 
 import android.content.Intent;
 import android.os.Build;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.os.Bundle;
@@ -16,6 +17,9 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+
+import static android.R.attr.tag;
+import static android.provider.ContactsContract.QuickContact.EXTRA_MODE;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -125,8 +129,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     /**
-     * function to show all files activity when clicked on the buttonSearch on the Toolbar
-     *
+     * function to show all files activity when clicked on the show all files button in the Toolbar
      */
     public void showAllFilesActivity(MenuItem item) {
         Intent intent = new Intent(this, FilesListViewActivity.class);
@@ -134,6 +137,10 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    /**
+     * function to search files by tag in the sqlite database
+     * @param tag
+     */
     private void searchByTag(String tag) {
         Intent intent = new Intent(this, FilesListViewActivity.class);
         intent.putExtra(FilesListViewActivity.EXTRA_SEARCH_MODE, FilesListViewActivity.SEARCH_BY_TAG);
@@ -147,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * function to search by name in the sqlite database
+     * function to search files by name in the sqlite database
      */
     public void searchByName(String searchString) {
         Intent intent = new Intent(this, FilesListViewActivity.class);
@@ -156,12 +163,22 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-
+    /**
+     * called on clicking show database (THIRD PARTY FEATURE) button in the main activity
+     * @param view
+     */
     public void startDB(View view){
         Intent intent = new Intent(this, AndroidDatabaseManager.class);
         startActivity(intent);
     }
 
-
-
+    /**
+     * called on clicking the capture by camera button in the menu toolbar
+     * @param item
+     */
+    public void captureImage(MenuItem item) {
+        Intent intent = new Intent(this, AddFileActivity.class);
+        intent.putExtra("EXTRA_MODE", AddFileActivity.EXTRA_MODE_CAPTURE);
+        startActivity(intent);
+    }
 }
