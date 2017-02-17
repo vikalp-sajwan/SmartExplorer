@@ -2,21 +2,15 @@ package com.example.vikalpsajwan.smartexplorer;
 
 import android.content.ContentResolver;
 import android.content.Context;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.provider.OpenableColumns;
 import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-
-import static android.R.attr.mode;
 
 
 /**
@@ -53,9 +47,9 @@ public class CopyFileUtility extends AsyncTask<Uri, Void, Void> {
         //      }
         //      dest = new File(dest+File.separator+fileName);
 
-        if (mode == AddFileActivity.EXTRA_MODE_SHARED) {
+        if (mode == AddFileActivity.EXTRA_MODE_FILE_SHARE) {
             copyFile(uris);
-        } else if (mode == AddFileActivity.EXTRA_MODE_CAPTURE) {
+        } else if (mode == AddFileActivity.EXTRA_MODE_IMAGE_CAPTURE || mode == AddFileActivity.EXTRA_MODE_TEXT_SHARE) {
             renameFile(uris);
         }
 

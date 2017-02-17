@@ -2,7 +2,6 @@ package com.example.vikalpsajwan.smartexplorer;
 
 import android.content.Intent;
 import android.os.Build;
-import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.os.Bundle;
@@ -17,9 +16,6 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-
-import static android.R.attr.tag;
-import static android.provider.ContactsContract.QuickContact.EXTRA_MODE;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -178,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
      */
     public void captureImage(MenuItem item) {
         Intent intent = new Intent(this, AddFileActivity.class);
-        intent.putExtra("EXTRA_MODE", AddFileActivity.EXTRA_MODE_CAPTURE);
+        intent.putExtra("EXTRA_MODE", AddFileActivity.EXTRA_MODE_IMAGE_CAPTURE);
         startActivity(intent);
     }
 }

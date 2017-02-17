@@ -16,7 +16,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
-import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,22 +28,24 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.security.Permissions;
+import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
 import static android.widget.Toast.LENGTH_LONG;
-import static java.security.AccessController.getContext;
 
 /**
  * Created by Vikalp on 04/02/2017.
  */
 
 public class AddFileActivity extends Activity {
-    static final int EXTRA_MODE_SHARED = 0;
-    static final int EXTRA_MODE_CAPTURE = 1;
+    static final int EXTRA_MODE_FILE_SHARE = 0;
+    static final int EXTRA_MODE_TEXT_SHARE = 1;
+    static final int EXTRA_MODE_IMAGE_CAPTURE = 2;
     private static final int REQUEST_TAKE_PHOTO = 1;
 
     int mMode;
@@ -74,14 +75,20 @@ public class AddFileActivity extends Activity {
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
 
+        String sharedText;
         Integer mode = (Integer) bundle.get("EXTRA_MODE");
-        if (mode == null)        //implicit intent
-            mMode = EXTRA_MODE_SHARED;
-        else                    //explicit intent
+        if (mode != null)        //explicit intent
             mMode = mode;
+        else {                    //implicit intent
+            // if the intent contains EXTRA_TEXT then it is a text intent only and does not contains a file
+            sharedText = (String) bundle.getCharSequence(Intent.EXTRA_TEXT);
+            if(sharedText != null)
+                mMode = EXTRA_MODE_TEXT_SHARE;
+            else
+                mMode = EXTRA_MODE_FILE_SHARE;
+        }
 
-
-        if (mMode == EXTRA_MODE_CAPTURE) {
+        if (mMode == EXTRA_MODE_IMAGE_CAPTURE) {
             Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             // Ensure that there's a camera activity to handle the intent
             if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
@@ -93,7 +100,7 @@ public class AddFileActivity extends Activity {
 
                 File photoFile = null;
                 try {
-                    photoFile = File.createTempFile(imageFileName, null, this.getExternalFilesDir(null));
+                    photoFile = File.createTempFile(imageFileName, ".jpg", this.getExternalFilesDir(null));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -109,26 +116,62 @@ public class AddFileActivity extends Activity {
         }
         // else implicit intent
         else {
-            mUri = (Uri) bundle.get(Intent.EXTRA_STREAM);
 
-            ContentResolver cr = this.getContentResolver();
-            // get file name based on type Uri
-            String fileName;
-            // file type Uri
-            if (mUri.toString().startsWith("file")) {
-                File file = new File(mUri.getPath());
-                fileName = file.getName();
+            if(mMode == EXTRA_MODE_TEXT_SHARE){
+                sharedText = (String) bundle.getCharSequence(Intent.EXTRA_TEXT);
+
+                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmSS").format(new Date());
+                String noteFileName = "NOTE_" + timeStamp + ".txt";
+                fileNameEditText.setText(noteFileName);
+
+                File noteFile = null;
+                try {
+                    noteFile = File.createTempFile(noteFileName, ".txt", this.getExternalFilesDir(null));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                // Continue only if the File was successfully created
+                if (noteFile.exists()) {
+                    try {
+                        FileOutputStream fOut = new FileOutputStream(noteFile);
+                        OutputStreamWriter out = new OutputStreamWriter(fOut);
+                        out.write(sharedText);
+                        out.close();
+                    } catch (FileNotFoundException e) {
+                        Log.e("Exception", "File write failed: " + e.toString());
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        Log.e("Exception", "File write failed: " + e.toString());
+                        e.printStackTrace();
+                    }
+                }
+                mUri = Uri.fromFile(noteFile);
             }
-            // content Uri
-            else {
-                Cursor returnCursor = cr.query(mUri, null, null, null, null);
-                int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                returnCursor.moveToFirst();
-                fileName = returnCursor.getString(nameIndex);
-                returnCursor.close();
+            else if(mMode == EXTRA_MODE_FILE_SHARE){
+
+                mUri = (Uri) bundle.get(Intent.EXTRA_STREAM);
+
+                ContentResolver cr = this.getContentResolver();
+                // get file name based on type Uri
+                String fileName;
+                // file type Uri
+                if (mUri.toString().startsWith("file")) {
+                    File file = new File(mUri.getPath());
+                    fileName = file.getName();
+                }
+                // content Uri
+                else {
+                    Cursor returnCursor = cr.query(mUri, null, null, null, null);
+                    int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    returnCursor.moveToFirst();
+                    fileName = returnCursor.getString(nameIndex);
+                    returnCursor.close();
+                }
+
+                fileNameEditText.setText(fileName);
             }
 
-            fileNameEditText.setText(fileName);
 
         }
 
@@ -192,7 +235,7 @@ public class AddFileActivity extends Activity {
      */
     @Override
     public void onBackPressed() {
-        if(mMode == EXTRA_MODE_CAPTURE){
+        if(mMode == EXTRA_MODE_IMAGE_CAPTURE){
             File capturedFile = new File(mUri.getPath());
             if(capturedFile.exists()){
                 capturedFile.delete();
