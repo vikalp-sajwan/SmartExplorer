@@ -16,7 +16,7 @@ import android.widget.Toast;
 import java.io.File;
 
 
-public class FilesListViewActivity extends AppCompatActivity {
+public class FilesListActivity extends AppCompatActivity {
 
     public static final int SHOW_ALL = 1;
     public static final int SEARCH_BY_NAME = 2;
@@ -30,6 +30,8 @@ public class FilesListViewActivity extends AppCompatActivity {
     ListView listView;
     private DatabaseHandler dbHandler;
     private Cursor resultCursor;
+    private FileListAdapter fla;
+    private int mode;
 
 
     @Override
@@ -38,7 +40,7 @@ public class FilesListViewActivity extends AppCompatActivity {
         dbHandler = DatabaseHandler.getDBInstance(getApplicationContext());
 
         Intent intent = this.getIntent();
-        int mode = intent.getIntExtra(EXTRA_SEARCH_MODE, 1);
+        mode = intent.getIntExtra(EXTRA_SEARCH_MODE, 1);
 
         if (mode == SHOW_ALL) {
             resultCursor = dbHandler.getAllFiles();
@@ -66,7 +68,7 @@ public class FilesListViewActivity extends AppCompatActivity {
 //        listView.setAdapter(new SimpleCursorAdapter(this, R.layout.list_files_listview_item, resultCursor, from, to, 0));
 
         // custom cursor adapter
-        FileListAdapter fla = new FileListAdapter(this, resultCursor, 0);
+        fla = new FileListAdapter(this, resultCursor, 0);
         listView.setAdapter(fla);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
