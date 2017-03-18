@@ -1,4 +1,4 @@
-package com.example.vikalpsajwan.smartexplorer;
+package com.example.vikalpsajwan.smartexplorer.UX;
 
 import android.content.Intent;
 import android.os.Build;
@@ -14,6 +14,10 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import com.example.vikalpsajwan.smartexplorer.models.AndroidDatabaseManager;
+import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
+import com.example.vikalpsajwan.smartexplorer.R;
 
 import java.util.ArrayList;
 

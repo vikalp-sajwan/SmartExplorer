@@ -1,4 +1,4 @@
-package com.example.vikalpsajwan.smartexplorer;
+package com.example.vikalpsajwan.smartexplorer.UX;
 
 /**
  * this activity can be called both implicitly(When files are shared by other apps)
@@ -30,6 +30,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
+import com.example.vikalpsajwan.smartexplorer.R;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -46,9 +49,9 @@ import static android.widget.Toast.LENGTH_LONG;
  */
 
 public class AddFileActivity extends Activity {
-    static final int EXTRA_MODE_FILE_SHARE = 0;
-    static final int EXTRA_MODE_TEXT_SHARE = 1;
-    static final int EXTRA_MODE_IMAGE_CAPTURE = 2;
+    public static final int EXTRA_MODE_FILE_SHARE = 0;
+    public static final int EXTRA_MODE_TEXT_SHARE = 1;
+    public static final int EXTRA_MODE_IMAGE_CAPTURE = 2;
     private static final int REQUEST_TAKE_PHOTO = 1;
 
     int mMode;

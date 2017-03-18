@@ -1,10 +1,13 @@
-package com.example.vikalpsajwan.smartexplorer;
+package com.example.vikalpsajwan.smartexplorer.UX;
 
 import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.widget.Toast;
+
+import com.example.vikalpsajwan.smartexplorer.UX.AddFileActivity;
+import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,7 +37,7 @@ public class CopyFileUtility extends AsyncTask<Uri, Void, Void> {
     }
 
     @Override
-    protected Void doInBackground(Uri... uris) {
+    public Void doInBackground(Uri... uris) {
 
         // get destination directory
         // option 1 - save in private space in external storage

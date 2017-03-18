@@ -1,4 +1,4 @@
-package com.example.vikalpsajwan.smartexplorer;
+package com.example.vikalpsajwan.smartexplorer.models;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -18,6 +18,47 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     static final String dbName = "SmartExplorerDB";
 
     static final String markedFilesTable = "markedFiles";
+
+    public static String getColfileid() {
+        return colfileid;
+    }
+
+    public static String getColfilename() {
+        return colfilename;
+    }
+
+    public static String getColfileAddress() {
+        return colfileAddress;
+    }
+
+    public static String getTagsTable() {
+        return tagsTable;
+    }
+
+    public static String getColtagid() {
+        return coltagid;
+    }
+
+    public static String getColtagName() {
+        return coltagName;
+    }
+
+    public static String getFileTagTable() {
+        return fileTagTable;
+    }
+
+    public static String getColftid() {
+        return colftid;
+    }
+
+    public static String getColFtFileid() {
+        return colFtFileid;
+    }
+
+    public static String getColFtTagid() {
+        return colFtTagid;
+    }
+
     static final String colfileid = "_id";
     static final String colfilename = "colfilename";
     static final String colfileAddress = "colfileAddress";
@@ -37,7 +78,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         super(context, dbName, null, 1);
     }
 
-    static DatabaseHandler getDBInstance(Context context) {
+    public static DatabaseHandler getDBInstance(Context context) {
         if (dbHandler == null) {
             dbHandler = new DatabaseHandler(context);
             return dbHandler;
@@ -109,7 +150,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @param fileAddress
      * @return
      */
-    long addFile(String filename, String fileAddress) {
+    public long addFile(String filename, String fileAddress) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put(DatabaseHandler.colfileAddress, fileAddress);
@@ -123,7 +164,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @param tagName   name of the tag to be searched in database
      * @return  -1 if tag is not present else the tagid
      */
-    long isTagPresent(String tagName){
+    public long isTagPresent(String tagName){
         SQLiteDatabase db = dbHandler.getReadableDatabase();
         long returnValue = -1;
         Cursor cur = db.rawQuery("SELECT "+ coltagid +" FROM " +
@@ -150,7 +191,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @param tagName
      * @return
      */
-    long addTag(String tagName){
+    public long addTag(String tagName){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put(DatabaseHandler.coltagName, tagName);
@@ -163,7 +204,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @param fileId
      * @param tagId
      */
-    void addFileTagEntry(long fileId, long tagId){
+    public void addFileTagEntry(long fileId, long tagId){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put(DatabaseHandler.colFtFileid, fileId);
@@ -175,7 +216,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * method to return all the files details saved in the database
      * @return
      */
-    Cursor getAllFiles() {
+    public Cursor getAllFiles() {
         SQLiteDatabase db = dbHandler.getReadableDatabase();
         Cursor cur = db.rawQuery("SELECT * FROM " + markedFilesTable, null);
         return cur;
@@ -186,7 +227,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @param searchString
      * @return
      */
-    Cursor searchFilesByName(String searchString) {
+    public Cursor searchFilesByName(String searchString) {
         SQLiteDatabase db = dbHandler.getReadableDatabase();
         String pattern = "%" + searchString + "%";
         Cursor cur = db.rawQuery("SELECT * FROM " +
@@ -207,7 +248,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @param tag
      * @return the cursor containing resultset
      */
-    Cursor searchFilesByTag(String tag) {
+    public Cursor searchFilesByTag(String tag) {
         SQLiteDatabase db = dbHandler.getReadableDatabase();
 
         Cursor cur = db.rawQuery("SELECT " + markedFilesTable+"."+colfileid+", " + colfilename +", " + colfileAddress+" FROM "+
@@ -229,7 +270,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * method to return all the tagnames stored in the database
      * @return arraylist of tags stored in the database
      */
-    ArrayList<String> getTagNames(){
+    public ArrayList<String> getTagNames(){
         SQLiteDatabase db = dbHandler.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT "+ coltagName +" FROM " + tagsTable, null);
         ArrayList<String> tags = new ArrayList<String>();

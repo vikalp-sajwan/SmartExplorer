@@ -1,5 +1,5 @@
 //add your package name here example: package com.example.dbm;
-package com.example.vikalpsajwan.smartexplorer;
+package com.example.vikalpsajwan.smartexplorer.models;
 
 //all required import files
 import java.util.ArrayList;
@@ -30,8 +30,6 @@ import android.widget.TableRow;
 import android.widget.TableRow.LayoutParams;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import static com.example.vikalpsajwan.smartexplorer.DatabaseHandler.getDBInstance;
 
 public class AndroidDatabaseManager extends Activity implements OnItemClickListener {
 

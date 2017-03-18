@@ -14,7 +14,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
 
-        <activity android:name=".MainActivity">
+        <activity android:name=".UX.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -22,7 +22,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".AddFileActivity"
+        <activity android:name=".UX.AddFileActivity"
             android:theme="@android:style/Theme.Translucent.NoTitleBar">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
@@ -31,13 +31,13 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".FilesListActivity"/>
+        <activity android:name=".UX.FilesListActivity"/>
 
 
 
 
 
-        <activity android:name=".AndroidDatabaseManager"
+        <activity android:name=".models.AndroidDatabaseManager"
             android:theme="@style/Theme.AppCompat.Light"/>
 
 

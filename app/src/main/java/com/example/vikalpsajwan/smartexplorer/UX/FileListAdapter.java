@@ -1,4 +1,4 @@
-package com.example.vikalpsajwan.smartexplorer;
+package com.example.vikalpsajwan.smartexplorer.UX;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -8,6 +8,9 @@ import android.view.ViewGroup;
 import android.widget.CursorAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.example.vikalpsajwan.smartexplorer.R;
+import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 
 import java.util.ArrayList;
 
@@ -36,9 +39,9 @@ public class FileListAdapter extends CursorAdapter {
         super(context, c, flags);
         dbHandler = DatabaseHandler.getDBInstance(context);
         inflater = LayoutInflater.from(context);
-        fileNameIndex = c.getColumnIndex(DatabaseHandler.colfilename);
-        filePathIndex = c.getColumnIndex(DatabaseHandler.colfileAddress);
-        fileIdIndex = c.getColumnIndex(DatabaseHandler.colfileid);
+        fileNameIndex = c.getColumnIndex(DatabaseHandler.getColfilename());
+        filePathIndex = c.getColumnIndex(DatabaseHandler.getColfileAddress());
+        fileIdIndex = c.getColumnIndex(DatabaseHandler.getColfileid());
 
     }
 

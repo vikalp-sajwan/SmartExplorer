@@ -1,4 +1,4 @@
-package com.example.vikalpsajwan.smartexplorer;
+package com.example.vikalpsajwan.smartexplorer.UX;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -12,6 +12,9 @@ import android.os.Bundle;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.example.vikalpsajwan.smartexplorer.R;
+import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 
 import java.io.File;
 
