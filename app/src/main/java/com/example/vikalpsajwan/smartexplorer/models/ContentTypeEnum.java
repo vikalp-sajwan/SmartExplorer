@@ -4,23 +4,33 @@ package com.example.vikalpsajwan.smartexplorer.models;
  * Created by amitjha on 3/18/2017.
  */
 
-public class ContentTypeEnum {
-    public enum contentTypeEnum{
-        Image,
-        Video,
-        Audio,
-        Document,
-        Location,
-        Note
-    }
+public enum ContentTypeEnum {
+    Image,
+    Video,
+    Audio,
+    Document,
+    Location,
+    Note,
+    Other;
 
-    public contentTypeEnum getContentType() {
-        return contentType;
+    public static ContentTypeEnum enumFromInt(int x) {
+        switch(x) {
+            case 0:
+                return Image;
+            case 1:
+                return Video;
+            case 2:
+                return Audio;
+            case 3:
+                return Document;
+            case 4:
+                return Location;
+            case 5:
+                return Note;
+            case 6:
+                return Other;
+        }
+        return null;
     }
-
-    public void setContentType(contentTypeEnum contentType) {
-        this.contentType = contentType;
-    }
-
-    public contentTypeEnum contentType;
 }
+

@@ -254,9 +254,10 @@ public class AddFileActivity extends Activity {
         if (!tagName.isEmpty()) {
             mfileTags.add(tagName);
             LayoutInflater li = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            TextView tv = (TextView) li.inflate(R.layout.tag_item, tagContainer, false);
+            LinearLayout ll = (LinearLayout) li.inflate(R.layout.tag_item_with_choice, tagContainer, false);
+            TextView tv = (TextView)ll.getChildAt(0);
             tv.setText(tagName);
-            tagContainer.addView(tv);
+            tagContainer.addView(ll);
         } else {
             Toast.makeText(getApplicationContext(), "please enter valid tag name", Toast.LENGTH_SHORT);
         }

@@ -13,6 +13,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.vikalpsajwan.smartexplorer.models.AndroidDatabaseManager;
@@ -61,10 +62,16 @@ public class MainActivity extends AppCompatActivity {
 
         dbHandler = DatabaseHandler.getDBInstance(getApplicationContext());
 
+        dbHandler.LoadData();
+
         ArrayList<String> autoCompleteTagList = dbHandler.getTagNames();
         ArrayAdapter<String> autoCompleteAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);
         actvTag.setThreshold(1);
         actvTag.setAdapter(autoCompleteAdapter);
+
+        // demonstration purpose
+        TextView demoTV = (TextView)findViewById(R.id.textView);
+        dbHandler.populateDemoTV(demoTV);
 
     }
 

@@ -10,11 +10,11 @@ public class SystemLevelValues {
     private ArrayList<ValueBasedTag> system_tags;
     public SystemLevelValues()
     {
-        system_tags.add(new ValueBasedTag("capture_date"," ", false));
-        system_tags.add(new ValueBasedTag("m_date","", false));
-        system_tags.add(new ValueBasedTag("source_app","", false));
-        system_tags.add(new ValueBasedTag("capture_location","", false));
-        system_tags.add(new ValueBasedTag("c_date","", false));
+        system_tags.add(new ValueBasedTag(0, "capture_date"," ", false));
+        system_tags.add(new ValueBasedTag(0, "m_date","", false));
+        system_tags.add(new ValueBasedTag(0, "source_app","", false));
+        system_tags.add(new ValueBasedTag(0, "capture_location","", false));
+        system_tags.add(new ValueBasedTag(0, "c_date","", false));
 
     }
 

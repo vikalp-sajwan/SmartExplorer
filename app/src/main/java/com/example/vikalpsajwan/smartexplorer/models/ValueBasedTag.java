@@ -7,8 +7,8 @@ package com.example.vikalpsajwan.smartexplorer.models;
 public class ValueBasedTag extends Tag {
     private String tagValue;
 
-    public ValueBasedTag(String tagName, String tagValue, boolean isUniqueContent) {
-        super(tagName, isUniqueContent);
+    public ValueBasedTag(long tagID, String tagName, String tagValue, boolean isUniqueContent) {
+        super(tagID, tagName, isUniqueContent);
         this.tagValue = tagValue;
 
     }
