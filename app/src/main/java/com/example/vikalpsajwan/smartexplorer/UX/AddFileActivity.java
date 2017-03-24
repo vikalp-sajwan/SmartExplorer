@@ -11,6 +11,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -25,6 +26,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -41,6 +43,7 @@ import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 
 import static android.widget.Toast.LENGTH_LONG;
 
@@ -56,6 +59,8 @@ public class AddFileActivity extends Activity {
 
     int mMode;
     ArrayList<String> mfileTags = new ArrayList<String>();
+    ArrayList<Boolean> mfileTagsUniqueness = new ArrayList<Boolean>();
+    HashMap<String,Boolean> addedTags = new HashMap<>();
     Uri mUri;
     EditText fileNameEditText;
     AutoCompleteTextView tagAutoCompleteTextView;
@@ -235,11 +240,21 @@ public class AddFileActivity extends Activity {
             this.finish();
         }
 
+        for(int i = 0 ; i<tagContainer.getChildCount(); i++){
+            LinearLayout ll = (LinearLayout) tagContainer.getChildAt(i);
+            TextView tv = (TextView)ll.getChildAt(0);
+            mfileTags.add(tv.getText().toString());
+            CheckBox cb = (CheckBox)ll.getChildAt(2);
+            if(cb.isChecked())
+                mfileTagsUniqueness.add(true);
+            else
+                mfileTagsUniqueness.add(false);
+        }
 
         String fileName = fileNameEditText.getText().toString().trim();
         if (!fileName.isEmpty()) {
             // create an instance of background Async task to copy file from intent mUri to app's private storage space
-            copyUtil = new CopyFileUtility(getApplicationContext(), mfileTags, fileName, mMode);
+            copyUtil = new CopyFileUtility(getApplicationContext(), mfileTags,mfileTagsUniqueness, fileName, mMode);
             // start background task and finish UI activity
             copyUtil.execute(mUri);
             this.finish();
@@ -252,9 +267,22 @@ public class AddFileActivity extends Activity {
     public void addTag(View view) {
         String tagName = tagAutoCompleteTextView.getText().toString().trim();
         if (!tagName.isEmpty()) {
-            mfileTags.add(tagName);
+            //mfileTags.add(tagName);
+            if(addedTags.get(tagName)==null)
+                addedTags.put(tagName, true);
+            else
+                return;
             LayoutInflater li = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             LinearLayout ll = (LinearLayout) li.inflate(R.layout.tag_item_with_choice, tagContainer, false);
+            long tagId = dbHandler.isTagPresent(tagName);
+            if( tagId != -1){
+                // disable the checkbox for already existing tags
+                CheckBox cb = (CheckBox)ll.getChildAt(2);
+                cb.setEnabled(false);
+                cb.setTextColor(Color.GRAY);
+                if(dbHandler.getTagHash().get(tagId).isUniqueContent())
+                    ll.getChildAt(0).setBackgroundColor(Color.parseColor("#cf2376"));
+            }
             TextView tv = (TextView)ll.getChildAt(0);
             tv.setText(tagName);
             tagContainer.addView(ll);

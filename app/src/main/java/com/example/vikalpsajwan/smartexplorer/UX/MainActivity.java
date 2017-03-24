@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
 
         dbHandler = DatabaseHandler.getDBInstance(getApplicationContext());
 
-        dbHandler.LoadData();
+        dbHandler.loadData();
 
         ArrayList<String> autoCompleteTagList = dbHandler.getTagNames();
         ArrayAdapter<String> autoCompleteAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);

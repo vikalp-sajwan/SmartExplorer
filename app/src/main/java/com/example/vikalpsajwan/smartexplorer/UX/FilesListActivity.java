@@ -15,8 +15,10 @@ import android.widget.Toast;
 
 import com.example.vikalpsajwan.smartexplorer.R;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
+import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
 
 import java.io.File;
+import java.util.ArrayList;
 
 
 public class FilesListActivity extends AppCompatActivity {
@@ -46,7 +48,30 @@ public class FilesListActivity extends AppCompatActivity {
         mode = intent.getIntExtra(EXTRA_SEARCH_MODE, 1);
 
         if (mode == SHOW_ALL) {
-            resultCursor = dbHandler.getAllFiles();
+            //resultCursor = dbHandler.getAllFiles();
+
+
+
+            // Using SmartContent data and ArrayListAdapter
+
+            ArrayList<SmartContent> sCData = dbHandler.getSmartContentData();
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_files_listview);
+
+            listView = (ListView) findViewById(R.id.files_listview);
+
+            // custom ArrayList adapter
+            FileListArrayAdapter flaa = new FileListArrayAdapter(this, R.layout.smart_content_list_item, sCData );
+            listView.setAdapter(flaa);
+            return;
+
+
+
+
+
+
+
+
         } else if( mode == SEARCH_BY_NAME){
             String searchString = intent.getStringExtra(EXTRA_SEARCH_STRING);
             resultCursor = dbHandler.searchFilesByName(searchString);

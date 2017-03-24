@@ -6,7 +6,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.widget.Toast;
 
-import com.example.vikalpsajwan.smartexplorer.UX.AddFileActivity;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 
 import java.io.File;
@@ -24,13 +23,15 @@ public class CopyFileUtility extends AsyncTask<Uri, Void, Void> {
 
     private Context context;
     private DatabaseHandler dbHandler;
-    private ArrayList<String> fileTags;
+    private ArrayList<String> tagNames;
+    private ArrayList<Boolean> tagsUniqueness;
     private String fileName;
     private int mode;
     private File mDest;
 
-    public CopyFileUtility(Context context, ArrayList<String> fileTags, String filename, int mode) {
-        this.fileTags = fileTags;
+    public CopyFileUtility(Context context, ArrayList<String> TagNames, ArrayList<Boolean> mfileTagsUniqueness, String filename, int mode) {
+        this.tagNames = TagNames;
+        this.tagsUniqueness = mfileTagsUniqueness;
         this.context = context;
         this.fileName = filename;
         this.mode = mode;
@@ -60,16 +61,24 @@ public class CopyFileUtility extends AsyncTask<Uri, Void, Void> {
         dbHandler = DatabaseHandler.getDBInstance(context);
         long insertedFileId = dbHandler.addFile(fileName, mDest.getAbsolutePath());
 
-        for (String tag : fileTags) {
-            long tagId = dbHandler.isTagPresent(tag);
+        ArrayList<Long> associatedTags = new ArrayList<>();
+
+        for(int i = 0; i< tagNames.size(); i++){
+            long tagId = dbHandler.isTagPresent(tagNames.get(i));
 
             if (tagId == -1) {    // tag does not exist in table - add the tag to database
-                tagId = dbHandler.addTag(tag);
+                tagId = dbHandler.addTag(tagNames.get(i), tagsUniqueness.get(i));
             }
+
+            associatedTags.add(tagId);
+            // add tag object to Tag object ArrayList in memory
+            dbHandler.addTagInMemory(tagId, tagNames.get(i), tagsUniqueness.get(i));
 
             // add entry in the fileTag table
             dbHandler.addFileTagEntry(insertedFileId, tagId);
         }
+
+        dbHandler.addSmartContentInMemory(insertedFileId, mDest.getAbsolutePath(), fileName, associatedTags );
 
         return null;
     }

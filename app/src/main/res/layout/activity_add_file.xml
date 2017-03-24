@@ -35,11 +35,12 @@
         android:layout_marginRight="5dp">
 
         <AutoCompleteTextView
-            android:hint="Enter tag"
+            android:id="@+id/tagAutoCompleteTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/tagAutoCompleteTextView"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:hint="Enter tag"
+            android:soundEffectsEnabled="false" />
 
         <Button
             android:text="Add Tag"
@@ -54,14 +55,13 @@
         android:background="@color/colorPrimaryDark"/>
 
     <LinearLayout
+        android:id="@+id/tagContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="vertical"
-        android:padding="8dp"
         android:animateLayoutChanges="true"
-        android:id="@+id/tagContainer">
-    </LinearLayout>
+        android:orientation="vertical"
+        android:padding="8dp"></LinearLayout>
 
     <Button
         android:text="Add File"

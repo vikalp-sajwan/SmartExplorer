@@ -6,6 +6,7 @@
     android:orientation="horizontal">
 
     <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/tagTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
@@ -22,11 +23,12 @@
         android:layout_weight="1" />
 
     <CheckBox
-        android:id="@+id/checkBox"
+        android:id="@+id/UniquenessCheckBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layoutDirection="rtl"
-        android:textColor="#363434"
-        android:text="Unique " />
+        android:soundEffectsEnabled="true"
+        android:text="Unique "
+        android:textColor="#f2f2f2" />
 
 </LinearLayout>

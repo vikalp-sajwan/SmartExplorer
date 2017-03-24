@@ -64,6 +64,7 @@ public class FileListAdapter extends CursorAdapter {
         tagContainerLL = (LinearLayout) view.findViewById(R.id.listViewTagContainer);
         tagContainerLL.removeAllViews();
 
+
         // get the file id -- find the associated tags and then add them to tag container
         long fileid = cursor.getLong(fileIdIndex);
         ArrayList<String> associatedTags = dbHandler.getAssociatedTags(fileid);

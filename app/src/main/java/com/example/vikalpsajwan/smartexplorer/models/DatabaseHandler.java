@@ -38,12 +38,25 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     private static DatabaseHandler dbHandler;
 
+    public ArrayList<SmartContent> getSmartContentData() {
+        return smartContentData;
+    }
+
+    public ArrayList<Tag> getTagData() {
+        return tagData;
+    }
+
     // data structure to load and hold the files data
     private ArrayList<SmartContent> smartContentData = new ArrayList<SmartContent>();
     private HashMap<Long, SmartContent> smartContentHash = new HashMap<Long, SmartContent>();
 
     // data structure to load and hold the tags data
     private ArrayList<Tag> tagData = new ArrayList<Tag>();
+
+    public HashMap<Long, Tag> getTagHash() {
+        return tagHash;
+    }
+
     private HashMap<Long, Tag> tagHash = new HashMap<Long, Tag>();
 
     private DatabaseHandler(Context context) {
@@ -66,6 +79,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static DatabaseHandler getDBInstance(Context context) {
         if (dbHandler == null) {
             dbHandler = new DatabaseHandler(context);
+            dbHandler.loadData();
             return dbHandler;
         } else {
             return dbHandler;
@@ -184,13 +198,17 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * method to add a new tag in the database
      *
      * @param tagName
+     * @param isUnique
      * @return
      */
-    public long addTag(String tagName) {
+    public long addTag(String tagName, Boolean isUnique) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put(DatabaseHandler.coltagName, tagName);
-        cv.put(DatabaseHandler.colIsUniqueTag, "0");
+        if(isUnique)
+            cv.put(DatabaseHandler.colIsUniqueTag, "1");
+        else
+            cv.put(DatabaseHandler.colIsUniqueTag, "0");
 
         return db.insert(tagsTable, null, cv);
     }
@@ -357,16 +375,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      *  method to load file and tags data from the
      *  database and save them in appropriate data objects in memory
      */
-    public void LoadData() {
+    public void loadData() {
         // getting tags data
         SQLiteDatabase db = dbHandler.getReadableDatabase();
         Cursor cur = db.rawQuery("SELECT * FROM " + tagsTable, null);
 
         boolean isUnique;
         while(cur.moveToNext()) {
-            Tag tag = new Tag(cur.getLong(0), cur.getString(1), cur.getInt(2));
-            tagData.add(tag);
-            tagHash.put(cur.getLong(0), tag);
+            if(cur.getInt(2)==0)
+                isUnique = false;
+            else
+                isUnique = true;
+            addTagInMemory(cur.getLong(0), cur.getString(1), isUnique);
         }
 
         if (cur != null)
@@ -396,6 +416,22 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             cur.close();
     }
 
+    public void addTagInMemory(long tagId, String tagName, boolean isUnique){
+        Tag tag = new Tag(tagId, tagName, isUnique);
+        tagData.add(tag);
+        tagHash.put(tagId, tag);
+    }
+
+    public void addSmartContentInMemory(long id, String address, String name, ArrayList<Long> associatedTags){
+        SmartContent sC = new SmartContent(id, address, name, ContentTypeEnum.Other.ordinal());
+        for(long tagId: associatedTags){
+            sC.addTag(tagHash.get(tagId));
+        }
+        smartContentData.add(sC);
+        smartContentHash.put(id, sC);
+    }
+
+
     // method to demonstrate tag and smartContent objects in memory
     public void populateDemoTV(TextView demoTV) {
         for(Tag tag: tagData){
@@ -422,4 +458,5 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             demoTV.append("\n\n");
         }
     }
+
 }
