@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -29,9 +30,11 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 import com.example.vikalpsajwan.smartexplorer.R;
 
@@ -60,13 +63,14 @@ public class AddFileActivity extends Activity {
     int mMode;
     ArrayList<String> mfileTags = new ArrayList<String>();
     ArrayList<Boolean> mfileTagsUniqueness = new ArrayList<Boolean>();
-    HashMap<String,Boolean> addedTags = new HashMap<>();
+    HashMap<String, Boolean> addedTags = new HashMap<>();
     Uri mUri;
     EditText fileNameEditText;
     AutoCompleteTextView tagAutoCompleteTextView;
     Button addTagButton;
     Button addFileButton;
     LinearLayout tagContainer;
+    Spinner contentCategorySpinner;
     private DatabaseHandler dbHandler;
     private CopyFileUtility copyUtil;
 
@@ -82,6 +86,9 @@ public class AddFileActivity extends Activity {
         tagContainer = (LinearLayout) findViewById(R.id.tagContainer);
         addFileButton = (Button) findViewById(R.id.addFileButton);
         addTagButton = (Button) findViewById(R.id.addTagButton);
+        contentCategorySpinner = (Spinner) findViewById(R.id.contentCategorySpinner);
+
+        contentCategorySpinner.setAdapter(new ArrayAdapter<ContentTypeEnum>(this, R.layout.file_category_spinner_item, ContentTypeEnum.values()));
 
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
@@ -93,7 +100,7 @@ public class AddFileActivity extends Activity {
         else {                    //implicit intent
             // if the intent contains EXTRA_TEXT then it is a text intent only and does not contains a file
             sharedText = (String) bundle.getCharSequence(Intent.EXTRA_TEXT);
-            if(sharedText != null)
+            if (sharedText != null)
                 mMode = EXTRA_MODE_TEXT_SHARE;
             else
                 mMode = EXTRA_MODE_FILE_SHARE;
@@ -118,7 +125,6 @@ public class AddFileActivity extends Activity {
 
                 // Continue only if the File was successfully created
                 if (photoFile.exists()) {
-                    // Log.i("GGGGGGGGGGGGGGGGGG",photoFile.toString());
                     mUri = Uri.fromFile(photoFile);
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
                     startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
@@ -128,7 +134,7 @@ public class AddFileActivity extends Activity {
         // else implicit intent
         else {
 
-            if(mMode == EXTRA_MODE_TEXT_SHARE){
+            if (mMode == EXTRA_MODE_TEXT_SHARE) {
                 sharedText = (String) bundle.getCharSequence(Intent.EXTRA_TEXT);
 
                 String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmSS").format(new Date());
@@ -158,8 +164,7 @@ public class AddFileActivity extends Activity {
                     }
                 }
                 mUri = Uri.fromFile(noteFile);
-            }
-            else if(mMode == EXTRA_MODE_FILE_SHARE){
+            } else if (mMode == EXTRA_MODE_FILE_SHARE) {
 
                 mUri = (Uri) bundle.get(Intent.EXTRA_STREAM);
 
@@ -207,17 +212,50 @@ public class AddFileActivity extends Activity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                if(s.length()>2 && s.charAt(s.length()-1) == '\n'){
-                    tagAutoCompleteTextView.setText(s.toString().toCharArray(),0, s.length()-1);
+                if (s.length() > 2 && s.charAt(s.length() - 1) == '\n') {
+                    tagAutoCompleteTextView.setText(s.toString().toCharArray(), 0, s.length() - 1);
                     addTagButton.performClick();
                 }
             }
+        });
+
+        fileNameEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String fileName = s.toString();
+                if(isFilenameValid(fileName)){
+                    String extension = getExtensionFromName(fileName);
+
+                    ContentTypeEnum filetype = dbHandler.fileExtensionHash.get(extension);
+                    if (filetype != null) {
+                        contentCategorySpinner.setSelection(filetype.ordinal());
+                    } else {
+                        contentCategorySpinner.setSelection(ContentTypeEnum.Other.ordinal());
+                    }
+                } else {
+                    contentCategorySpinner.setSelection(ContentTypeEnum.Other.ordinal());
+                }
+            }
+
         });
 
         ArrayList<String> autoCompleteTagList = dbHandler.getTagNames();
         ArrayAdapter<String> autoCompleteAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);
         tagAutoCompleteTextView.setThreshold(1);
         tagAutoCompleteTextView.setAdapter(autoCompleteAdapter);
+
+        // command to trigger textchanged event for determination of filetype
+        fileNameEditText.setText(fileNameEditText.getText());
 
     }
 
@@ -240,21 +278,31 @@ public class AddFileActivity extends Activity {
             this.finish();
         }
 
-        for(int i = 0 ; i<tagContainer.getChildCount(); i++){
+        for (int i = 0; i < tagContainer.getChildCount(); i++) {
             LinearLayout ll = (LinearLayout) tagContainer.getChildAt(i);
-            TextView tv = (TextView)ll.getChildAt(0);
+            TextView tv = (TextView) ll.getChildAt(0);
             mfileTags.add(tv.getText().toString());
-            CheckBox cb = (CheckBox)ll.getChildAt(2);
-            if(cb.isChecked())
+            CheckBox cb = (CheckBox) ll.getChildAt(2);
+            if (cb.isChecked())
                 mfileTagsUniqueness.add(true);
             else
                 mfileTagsUniqueness.add(false);
         }
 
+        ContentTypeEnum contentType = ContentTypeEnum.enumFromInt(contentCategorySpinner.getSelectedItemPosition());
+
         String fileName = fileNameEditText.getText().toString().trim();
-        if (!fileName.isEmpty()) {
+        if (isFilenameValid(fileName)) {
+            String extension = getExtensionFromName(fileName);
+
+            // if the fileType extension in new and user has selected filetype category other than "Other" then save it in database
+
+            if(dbHandler.fileExtensionHash.get(extension) == null && contentType != ContentTypeEnum.Other)
+                dbHandler.saveExtensionType(extension, contentType);
+            else
+                contentType = dbHandler.fileExtensionHash.get(extension);
             // create an instance of background Async task to copy file from intent mUri to app's private storage space
-            copyUtil = new CopyFileUtility(getApplicationContext(), mfileTags,mfileTagsUniqueness, fileName, mMode);
+            copyUtil = new CopyFileUtility(getApplicationContext(), mfileTags, mfileTagsUniqueness, fileName, contentType, mMode);
             // start background task and finish UI activity
             copyUtil.execute(mUri);
             this.finish();
@@ -263,27 +311,31 @@ public class AddFileActivity extends Activity {
 
     }
 
+    private String getExtensionFromName(String fileName) {
+        return fileName.substring(fileName.lastIndexOf(".")+1);
+    }
+
     // function called on clicking the add tag buttonSearch
     public void addTag(View view) {
         String tagName = tagAutoCompleteTextView.getText().toString().trim();
         if (!tagName.isEmpty()) {
             //mfileTags.add(tagName);
-            if(addedTags.get(tagName)==null)
+            if (addedTags.get(tagName) == null)
                 addedTags.put(tagName, true);
             else
                 return;
             LayoutInflater li = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             LinearLayout ll = (LinearLayout) li.inflate(R.layout.tag_item_with_choice, tagContainer, false);
             long tagId = dbHandler.isTagPresent(tagName);
-            if( tagId != -1){
+            if (tagId != -1) {
                 // disable the checkbox for already existing tags
-                CheckBox cb = (CheckBox)ll.getChildAt(2);
+                CheckBox cb = (CheckBox) ll.getChildAt(2);
                 cb.setEnabled(false);
                 cb.setTextColor(Color.GRAY);
-                if(dbHandler.getTagHash().get(tagId).isUniqueContent())
+                if (dbHandler.getTagHash().get(tagId).isUniqueContent())
                     ll.getChildAt(0).setBackgroundColor(Color.parseColor("#cf2376"));
             }
-            TextView tv = (TextView)ll.getChildAt(0);
+            TextView tv = (TextView) ll.getChildAt(0);
             tv.setText(tagName);
             tagContainer.addView(ll);
         } else {
@@ -292,14 +344,20 @@ public class AddFileActivity extends Activity {
         tagAutoCompleteTextView.setText("");
     }
 
+    public boolean isFilenameValid(String name){
+        if(name.length()>3 && name.lastIndexOf(".")>0 && name.lastIndexOf(".") < name.length()-1)
+            return true;
+        return false;
+    }
+
     /**
      * method to delete the captured file if user presses the back button
      */
     @Override
     public void onBackPressed() {
-        if(mMode == EXTRA_MODE_IMAGE_CAPTURE){
+        if (mMode == EXTRA_MODE_IMAGE_CAPTURE) {
             File capturedFile = new File(mUri.getPath());
-            if(capturedFile.exists()){
+            if (capturedFile.exists()) {
                 capturedFile.delete();
             }
         }

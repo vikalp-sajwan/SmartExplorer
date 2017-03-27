@@ -12,6 +12,8 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static android.R.attr.tag;
+
 /**
  * Created by Vikalp on 05/02/2017.
  */
@@ -31,9 +33,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     static final String colIsUniqueTag = "colIsUniqueTag";
 
     static final String fileTagTable = "fileTag";
-    static final String colftid = "_id";
+    static final String colFileTagid = "_id";
     static final String colFtFileid = "colFtFileid";
     static final String colFtTagid = "colFtTagid";
+
+    static final String fileTypesTable = "fileTypes";
+    static final String colFileTypeid = "_id";
+    static final String colFileExtension = "colFileExtension";
+    static final String colFileCategory = "colFileCategory";
 
 
     private static DatabaseHandler dbHandler;
@@ -58,6 +65,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     private HashMap<Long, Tag> tagHash = new HashMap<Long, Tag>();
+
+    public HashMap<String, ContentTypeEnum> fileExtensionHash = new HashMap<String, ContentTypeEnum>();
 
     private DatabaseHandler(Context context) {
         super(context, dbName, null, 1);
@@ -130,10 +139,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE " +
                 fileTagTable +
                 " (" +
-                colftid +
+                colFileTagid +
                 " INTEGER PRIMARY KEY AUTOINCREMENT , " +
                 colFtFileid +
-                " TEXT ," +
+                " INTEGER ," +
                 colFtTagid +
                 " INTEGER," +
                 "FOREIGN KEY (" + colFtFileid + ") REFERENCES " + markedFilesTable + "(" + colfileid + ") ," +
@@ -141,6 +150,120 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 ")"
 
         );
+
+        // create filetypes table which maps file extension to ContentTypeEnum
+        db.execSQL("CREATE TABLE " +
+                fileTypesTable +
+                " (" +
+                colFileTypeid +
+                " INTEGER PRIMARY KEY AUTOINCREMENT , " +
+                colFileExtension +
+                " TEXT , " +
+                colFileCategory +
+                " INTEGER "+
+                ")"
+
+        );
+
+
+        populateFileTypesTable(db);
+
+    }
+
+    private void populateFileTypesTable(SQLiteDatabase db) {
+        String[] image = {
+                "bmp",
+                "gif",
+                "ico",
+                "jpeg",
+                "jpg",
+                "png",
+                "pic",
+                "svg",
+                "tif",
+                "tiff"
+        };
+
+        String[] video = {
+                "3gp",
+                "3gpp",
+                "avi",
+                "divx",
+                "flv",
+                "mov",
+                "mpeg",
+                "mpg",
+                "webm",
+                "wmv",
+                "mp4",
+                "mkv"
+        };
+
+        String[] audio = {
+                "aa",
+                "aac",
+                "flac",
+                "m3u",
+                "m4a",
+                "mid",
+                "midi",
+                "mp3",
+                "ogg",
+                "wav",
+                "wma",
+                "ra",
+                "la",
+                "m3u"
+        };
+
+        String[] document = {
+                "pdf",
+                "epub",
+                "doc",
+                "docx",
+                "ppt",
+                "note",
+                "txt",
+                "pptx",
+                "rtf",
+                "txt",
+                "wps",
+                "dotx",
+                "uml",
+                "xml",
+                "html",
+                "htm",
+                "dot",
+                "dotx",
+                "log",
+                "mobi",
+        };
+
+        ContentValues cv = new ContentValues();
+        for (String extension : image) {
+            cv.put(DatabaseHandler.colFileExtension, extension);
+            cv.put(DatabaseHandler.colFileCategory, ContentTypeEnum.Image.ordinal());
+            db.insert(fileTypesTable, null, cv);
+            cv.clear();
+        }
+        for (String extension : video) {
+            cv.put(DatabaseHandler.colFileExtension, extension);
+            cv.put(DatabaseHandler.colFileCategory, ContentTypeEnum.Video.ordinal());
+            db.insert(fileTypesTable, null, cv);
+            cv.clear();
+        }
+        for (String extension : audio) {
+            cv.put(DatabaseHandler.colFileExtension, extension);
+            cv.put(DatabaseHandler.colFileCategory, ContentTypeEnum.Audio.ordinal());
+            db.insert(fileTypesTable, null, cv);
+            cv.clear();
+        }
+        for (String extension : document) {
+            cv.put(DatabaseHandler.colFileExtension, extension);
+            cv.put(DatabaseHandler.colFileCategory, ContentTypeEnum.Document.ordinal());
+            db.insert(fileTypesTable, null, cv);
+            cv.clear();
+        }
 
     }
 
@@ -156,12 +279,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @param fileAddress
      * @return
      */
-    public long addFile(String filename, String fileAddress) {
+    public long addFile(String filename, String fileAddress, ContentTypeEnum contentType) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put(DatabaseHandler.colfileAddress, fileAddress);
         cv.put(DatabaseHandler.colfilename, filename);
-        cv.put(DatabaseHandler.colFileType, String.valueOf(ContentTypeEnum.Other.ordinal()));
+        cv.put(DatabaseHandler.colFileType, contentType.ordinal());
 
         return db.insert(markedFilesTable, null, cv);
     }
@@ -412,6 +535,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             smartContentHash.get(fileID).addTag(tagHash.get(tagID));
         }
 
+        //getting file extension data
+        cur = db.rawQuery("SELECT * FROM " + fileTypesTable, null);
+        while(cur.moveToNext()){
+            String extension = cur.getString(1);
+            int fileCategory = cur.getInt(2);
+
+            fileExtensionHash.put(extension, ContentTypeEnum.enumFromInt(fileCategory));
+        }
         if (cur != null )
             cur.close();
     }
@@ -457,6 +588,19 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             }
             demoTV.append("\n\n");
         }
+
+        demoTV.append(fileExtensionHash.toString());
     }
 
+
+    public void saveExtensionType(String extension, ContentTypeEnum contentType) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(DatabaseHandler.colFileExtension, extension);
+        cv.put(DatabaseHandler.colFileCategory, String.valueOf(contentType.ordinal()));
+
+        db.insert(fileTypesTable, null, cv);
+
+        fileExtensionHash.put(extension, contentType);
+    }
 }

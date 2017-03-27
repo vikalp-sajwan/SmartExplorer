@@ -4,14 +4,16 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
+
     <TextView
         android:id="@+id/smart_content_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
         android:fontFamily="sans-serif"
         android:gravity="center_vertical"
-        android:textSize="15sp"
-        android:layout_marginTop="5dp"/>
+        android:maxLines="1"
+        android:textSize="15sp" />
 
     <LinearLayout
         android:id="@+id/smart_content_tag_container"

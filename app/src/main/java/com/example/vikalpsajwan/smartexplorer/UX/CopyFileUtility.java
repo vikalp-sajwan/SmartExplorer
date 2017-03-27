@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.widget.Toast;
 
+import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 
 import java.io.File;
@@ -27,14 +28,16 @@ public class CopyFileUtility extends AsyncTask<Uri, Void, Void> {
     private ArrayList<Boolean> tagsUniqueness;
     private String fileName;
     private int mode;
+    private ContentTypeEnum contentType;
     private File mDest;
 
-    public CopyFileUtility(Context context, ArrayList<String> TagNames, ArrayList<Boolean> mfileTagsUniqueness, String filename, int mode) {
+    public CopyFileUtility(Context context, ArrayList<String> TagNames, ArrayList<Boolean> mfileTagsUniqueness, String filename, ContentTypeEnum contentType, int mode) {
         this.tagNames = TagNames;
         this.tagsUniqueness = mfileTagsUniqueness;
         this.context = context;
         this.fileName = filename;
         this.mode = mode;
+        this.contentType = contentType;
     }
 
     @Override
@@ -59,7 +62,7 @@ public class CopyFileUtility extends AsyncTask<Uri, Void, Void> {
 
         // add entry of file in app database and save the autoincrement id of file
         dbHandler = DatabaseHandler.getDBInstance(context);
-        long insertedFileId = dbHandler.addFile(fileName, mDest.getAbsolutePath());
+        long insertedFileId = dbHandler.addFile(fileName, mDest.getAbsolutePath(), contentType);
 
         ArrayList<Long> associatedTags = new ArrayList<>();
 
