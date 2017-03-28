@@ -8,12 +8,19 @@ import android.widget.Toast;
 
 import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
+import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
+import com.example.vikalpsajwan.smartexplorer.models.Tag;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.ListIterator;
+
+import static android.R.attr.tag;
+import static android.R.id.list;
 
 
 /**
@@ -63,25 +70,68 @@ public class CopyFileUtility extends AsyncTask<Uri, Void, Void> {
         // add entry of file in app database and save the autoincrement id of file
         dbHandler = DatabaseHandler.getDBInstance(context);
         long insertedFileId = dbHandler.addFile(fileName, mDest.getAbsolutePath(), contentType);
+        SmartContent sC = dbHandler.addSmartContentInMemory(insertedFileId, mDest.getAbsolutePath(), fileName, new ArrayList<Long>(), contentType);
 
         ArrayList<Long> associatedTags = new ArrayList<>();
 
+        // keep arrayList of tagId of tags to add in them the reference of SmartContent which is being added
+        ArrayList<Long> addedTags = new ArrayList<Long>();
+
+
+
+
+
+
         for(int i = 0; i< tagNames.size(); i++){
+            Tag tag;
             long tagId = dbHandler.isTagPresent(tagNames.get(i));
 
-            if (tagId == -1) {    // tag does not exist in table - add the tag to database
+            if(tagId == -1){    // new tag
                 tagId = dbHandler.addTag(tagNames.get(i), tagsUniqueness.get(i));
+                tag = dbHandler.addTagInMemory(tagId, tagNames.get(i), tagsUniqueness.get(i));
+                addedTags.add(tagId);
             }
+            else{   // existing tag
+                tag = dbHandler.tagHash.get(tagId);
+                if(tagsUniqueness.get(i) == true){  // marked as unique by user
+                    // delete all associated files with this tag( one or multiple)
+                    // and also remove entry of those files from the tags that were associated with them
 
-            associatedTags.add(tagId);
-            // add tag object to Tag object ArrayList in memory
-            dbHandler.addTagInMemory(tagId, tagNames.get(i), tagsUniqueness.get(i));
+                    ArrayList<SmartContent> associatedFiles = tag.getAssociatedContent();
+                    while(associatedFiles.size()!=0){
+                        dbHandler.deleteSmartContent(associatedFiles.get(0));
+                    }
 
-            // add entry in the fileTag table
-            dbHandler.addFileTagEntry(insertedFileId, tagId);
+                    // update in memory
+                    if(!tag.isUniqueContent()){
+                        tag.setUniqueContent(true);
+                        tag.removeAssociatedContent();
+                        // update in database
+                        dbHandler.updateTagUniqueness(tagId, true);
+                    }
+                }
+                else{   // NOT marked as unique by user --> therefore change tag type to NON-unique if it is unique
+                    // update in memory
+                    if(tag.isUniqueContent()){
+                        tag.setUniqueContent(false);
+                        // update in database
+                        dbHandler.updateTagUniqueness(tagId, false);
+                    }
+
+                }
+
+                addedTags.add(tagId);
+            }
+            // update in memory for tag
+            tag.addAssociatedContent(sC);
         }
 
-        dbHandler.addSmartContentInMemory(insertedFileId, mDest.getAbsolutePath(), fileName, associatedTags );
+        for(long addedTagId: addedTags){
+            dbHandler.addFileTagEntry(insertedFileId, addedTagId);
+            sC.addTag(dbHandler.tagHash.get(addedTagId));
+        }
+
+
 
         return null;
     }

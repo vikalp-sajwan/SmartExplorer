@@ -9,6 +9,7 @@ package com.example.vikalpsajwan.smartexplorer.UX;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -17,6 +18,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -37,6 +39,8 @@ import android.widget.Toast;
 import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 import com.example.vikalpsajwan.smartexplorer.R;
+import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
+import com.example.vikalpsajwan.smartexplorer.models.Tag;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -48,13 +52,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
+import static android.text.TextUtils.concat;
 import static android.widget.Toast.LENGTH_LONG;
 
 /**
  * Created by Vikalp on 04/02/2017.
  */
 
-public class AddFileActivity extends Activity {
+public class AddFileActivity extends AppCompatActivity {
     public static final int EXTRA_MODE_FILE_SHARE = 0;
     public static final int EXTRA_MODE_TEXT_SHARE = 1;
     public static final int EXTRA_MODE_IMAGE_CAPTURE = 2;
@@ -271,22 +276,74 @@ public class AddFileActivity extends Activity {
 
 
     // function called on clicking the add file buttonSearch
-    public void addFile(View view) {
+    public void addFileCheck(View view) {
         // check if the external storage is mounted
         if (!isExternalStorageWritable()) {
             Toast.makeText(getApplicationContext(), "External Storage not Mounted !! Try again later.", LENGTH_LONG).show();
             this.finish();
         }
 
+        String dialogBoxMessage = new String();
         for (int i = 0; i < tagContainer.getChildCount(); i++) {
             LinearLayout ll = (LinearLayout) tagContainer.getChildAt(i);
             TextView tv = (TextView) ll.getChildAt(0);
-            mfileTags.add(tv.getText().toString());
             CheckBox cb = (CheckBox) ll.getChildAt(2);
+
+            String tag = tv.getText().toString();
+            long tagId = dbHandler.isTagPresent(tag);
+
+            if(cb.isChecked() && tagId != -1 && !dbHandler.tagHash.get(tagId).getAssociatedContent().isEmpty()){    // pre existing tag and user has marked it as unique
+                Tag tagObject = dbHandler.tagHash.get(tagId);
+                dialogBoxMessage = dialogBoxMessage.concat(tagObject.getTagName()+" : ");
+                for(SmartContent sC: tagObject.getAssociatedContent()){
+                    dialogBoxMessage = dialogBoxMessage.concat("\n\t"+sC.getContentFileName());
+                }
+            }
+
+        }
+
+        if(!dialogBoxMessage.isEmpty()){
+
+            final AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+            alertDialog.setTitle("DELETE following content. Continue?");
+            alertDialog.setMessage(dialogBoxMessage);
+            alertDialog.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                    addFile();
+                }
+            });
+            alertDialog.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            alertDialog.setIcon(android.R.drawable.ic_dialog_alert);
+            alertDialog.setCancelable(false);
+            alertDialog.show();
+        }else{
+            addFile();
+        }
+
+    }
+
+    public void addFile(){
+
+        for (int i = 0; i < tagContainer.getChildCount(); i++) {
+            LinearLayout ll = (LinearLayout) tagContainer.getChildAt(i);
+            TextView tv = (TextView) ll.getChildAt(0);
+            CheckBox cb = (CheckBox) ll.getChildAt(2);
+
+            String tag = tv.getText().toString();
+
+            mfileTags.add(tag);
             if (cb.isChecked())
                 mfileTagsUniqueness.add(true);
             else
                 mfileTagsUniqueness.add(false);
+
         }
 
         ContentTypeEnum contentType = ContentTypeEnum.enumFromInt(contentCategorySpinner.getSelectedItemPosition());
@@ -308,7 +365,6 @@ public class AddFileActivity extends Activity {
             this.finish();
         } else
             Toast.makeText(getApplicationContext(), "please enter valid file name", Toast.LENGTH_SHORT);
-
     }
 
     private String getExtensionFromName(String fileName) {
@@ -330,10 +386,11 @@ public class AddFileActivity extends Activity {
             if (tagId != -1) {
                 // disable the checkbox for already existing tags
                 CheckBox cb = (CheckBox) ll.getChildAt(2);
-                cb.setEnabled(false);
-                cb.setTextColor(Color.GRAY);
-                if (dbHandler.getTagHash().get(tagId).isUniqueContent())
+
+                if (dbHandler.getTagHash().get(tagId).isUniqueContent()) {
                     ll.getChildAt(0).setBackgroundColor(Color.parseColor("#cf2376"));
+                    cb.setChecked(true);
+                }
             }
             TextView tv = (TextView) ll.getChildAt(0);
             tv.setText(tagName);

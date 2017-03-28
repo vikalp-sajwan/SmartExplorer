@@ -1,5 +1,9 @@
 package com.example.vikalpsajwan.smartexplorer.models;
 
+import android.util.Log;
+
+import java.util.ArrayList;
+
 /**
  * Created by amitjha on 3/18/2017.
  */
@@ -8,29 +12,35 @@ public class Tag {
     private boolean isUniqueContent;
     private long tagId;
     private String tagName;
-
-    public long getTagId() {
-        return tagId;
-    }
-
-    public void setTagId(long tagId) {
-        this.tagId = tagId;
-    }
-
-
+    private ArrayList<SmartContent> associatedContent;
     public Tag(long tagId, String tagName, boolean isUniqueContent) {
         this.tagId = tagId;
         this.tagName = tagName;
         this.isUniqueContent = isUniqueContent;
+        associatedContent = new ArrayList<SmartContent>();
+
     }
 
     public Tag(long tagId, String tagName, int isUniqueContent) {
         this.tagId = tagId;
         this.tagName = tagName;
-        if(isUniqueContent == 0)
+        associatedContent = new ArrayList<SmartContent>();
+        if (isUniqueContent == 0)
             this.isUniqueContent = false;
         else
             this.isUniqueContent = true;
+    }
+
+    public ArrayList<SmartContent> getAssociatedContent() {
+        return associatedContent;
+    }
+
+    public void addAssociatedContent(SmartContent sC) {
+        if(isUniqueContent && associatedContent.size() >=1 ){
+            Log.e("INVALID OPERATION!!!", "cant associate unique tag with more than one Content");
+            throw new RuntimeException("INVALID operation");
+        }
+        associatedContent.add(sC);
     }
 
     public boolean isUniqueContent() {
@@ -45,7 +55,11 @@ public class Tag {
         return tagName;
     }
 
-    public void setTagName(String tagName) {
-        this.tagName = tagName;
+    public long getTagId() {
+        return tagId;
+    }
+
+    public void removeAssociatedContent() {
+        associatedContent.clear();
     }
 }

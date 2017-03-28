@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 import android.widget.TextView;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -64,7 +65,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return tagHash;
     }
 
-    private HashMap<Long, Tag> tagHash = new HashMap<Long, Tag>();
+    public HashMap<Long, Tag> tagHash = new HashMap<Long, Tag>();
 
     public HashMap<String, ContentTypeEnum> fileExtensionHash = new HashMap<String, ContentTypeEnum>();
 
@@ -130,7 +131,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         ContentValues cv = new ContentValues();
         for (String tag : commonTags) {
             cv.put(DatabaseHandler.coltagName, tag);
-            cv.put(DatabaseHandler.colIsUniqueTag, "0");
+            cv.put(DatabaseHandler.colIsUniqueTag, 0);
             db.insert(tagsTable, null, cv);
             cv.clear();
         }
@@ -329,9 +330,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         ContentValues cv = new ContentValues();
         cv.put(DatabaseHandler.coltagName, tagName);
         if(isUnique)
-            cv.put(DatabaseHandler.colIsUniqueTag, "1");
+            cv.put(DatabaseHandler.colIsUniqueTag, 1);
         else
-            cv.put(DatabaseHandler.colIsUniqueTag, "0");
+            cv.put(DatabaseHandler.colIsUniqueTag, 0);
 
         return db.insert(tagsTable, null, cv);
     }
@@ -530,9 +531,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         // getting tag file association data
         cur = db.rawQuery("SELECT * FROM " + fileTagTable, null);
         while(cur.moveToNext()){
-            Long fileID = cur.getLong(1);
+            Long contentID = cur.getLong(1);
             Long tagID = cur.getLong(2);
-            smartContentHash.get(fileID).addTag(tagHash.get(tagID));
+            smartContentHash.get(contentID).addTag(tagHash.get(tagID));
+            tagHash.get(tagID).addAssociatedContent(smartContentHash.get(contentID));
         }
 
         //getting file extension data
@@ -547,19 +549,21 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             cur.close();
     }
 
-    public void addTagInMemory(long tagId, String tagName, boolean isUnique){
+    public Tag addTagInMemory(long tagId, String tagName, boolean isUnique){
         Tag tag = new Tag(tagId, tagName, isUnique);
         tagData.add(tag);
         tagHash.put(tagId, tag);
+        return tag;
     }
 
-    public void addSmartContentInMemory(long id, String address, String name, ArrayList<Long> associatedTags){
-        SmartContent sC = new SmartContent(id, address, name, ContentTypeEnum.Other.ordinal());
+    public SmartContent addSmartContentInMemory(long id, String address, String name, ArrayList<Long> associatedTags, ContentTypeEnum contentType){
+        SmartContent sC = new SmartContent(id, address, name, contentType.ordinal());
         for(long tagId: associatedTags){
             sC.addTag(tagHash.get(tagId));
         }
         smartContentData.add(sC);
         smartContentHash.put(id, sC);
+        return sC;
     }
 
 
@@ -568,7 +572,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         for(Tag tag: tagData){
             demoTV.append("tag name: "+tag.getTagName()+"\n"
                     +"tag id: "+tag.getTagId()+"\n"
-                    +"Is Unique: "+tag.isUniqueContent());
+                    +"Is Unique: "+tag.isUniqueContent() + "\n" +
+                    "Associated files: "
+            );
+            for(SmartContent sC: tag.getAssociatedContent()){
+                demoTV.append(sC.getContentFileName()+", ");
+            }
             demoTV.append("\n\n");
         }
 
@@ -584,7 +593,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                     "Associate Tags: "
             );
             for(Tag tag: sC.getAssociatedTags()){
-                demoTV.append(tag.getTagName()+", ");
+                demoTV.append(tag.getTagName()+"  ");
             }
             demoTV.append("\n\n");
         }
@@ -597,10 +606,52 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put(DatabaseHandler.colFileExtension, extension);
-        cv.put(DatabaseHandler.colFileCategory, String.valueOf(contentType.ordinal()));
+        cv.put(DatabaseHandler.colFileCategory, contentType.ordinal());
 
         db.insert(fileTypesTable, null, cv);
 
         fileExtensionHash.put(extension, contentType);
+    }
+
+    public void updateTagUniqueness(long tagId, boolean isUnique) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        if(isUnique == true)
+            cv.put(DatabaseHandler.colIsUniqueTag, 1);
+        else
+            cv.put(DatabaseHandler.colIsUniqueTag, 0);
+        db.update(DatabaseHandler.tagsTable, cv, "_id="+tagId, null);
+    }
+
+    public void deleteFileTagEntry(long contentID, long tagId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(fileTagTable,colFtFileid+"=? and "+colFtTagid+"=?",new String[]{""+contentID,""+tagId});
+    }
+
+    public void deleteSmartContent(SmartContent sC) {
+        // delete in database
+        for(Tag tag: sC.getAssociatedTags()){
+            deleteFileTagEntry(sC.getContentID(), tag.getTagId());
+        }
+        deleteFile(sC.getContentID());
+
+        // delete in storage
+        File file = new File(sC.getContentUnit().getAddress());
+        if(file.exists()){
+            file.delete();
+        }
+
+        // delete in memory
+        for(Tag tag: sC.getAssociatedTags()){
+            tag.getAssociatedContent().remove(sC);
+        }
+        smartContentHash.remove(sC.getContentID());
+        smartContentData.remove(sC);
+
+    }
+
+    private void deleteFile(long contentID) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(markedFilesTable,"_id=?" ,new String[]{""+contentID});
     }
 }
