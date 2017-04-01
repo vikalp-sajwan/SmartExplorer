@@ -11,11 +11,15 @@ public class ContentUnit {
     public ContentUnit(String source, ContentTypeEnum contentType){
         this.address = source;
         this.contentType = contentType;
+
     }
+
+
 
     public ContentUnit(String fileAddress, int fileType) {
         contentType = ContentTypeEnum.enumFromInt(fileType);
         address = fileAddress;
+
     }
 
     public String getAddress() {

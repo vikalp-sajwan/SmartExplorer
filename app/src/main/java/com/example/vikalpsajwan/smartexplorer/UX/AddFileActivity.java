@@ -63,7 +63,8 @@ public class AddFileActivity extends AppCompatActivity {
     public static final int EXTRA_MODE_FILE_SHARE = 0;
     public static final int EXTRA_MODE_TEXT_SHARE = 1;
     public static final int EXTRA_MODE_IMAGE_CAPTURE = 2;
-    private static final int REQUEST_TAKE_PHOTO = 1;
+
+    private static final int CAMERA_REQUEST_CODE = 111;
 
     int mMode;
     ArrayList<String> mfileTags = new ArrayList<String>();
@@ -78,6 +79,22 @@ public class AddFileActivity extends AppCompatActivity {
     Spinner contentCategorySpinner;
     private DatabaseHandler dbHandler;
     private CopyFileUtility copyUtil;
+
+    /**
+     * Dispatch incoming result to the correct fragment.
+     *
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == CAMERA_REQUEST_CODE && resultCode != Activity.RESULT_OK){
+            finish();
+        }
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,108 +111,6 @@ public class AddFileActivity extends AppCompatActivity {
         contentCategorySpinner = (Spinner) findViewById(R.id.contentCategorySpinner);
 
         contentCategorySpinner.setAdapter(new ArrayAdapter<ContentTypeEnum>(this, R.layout.file_category_spinner_item, ContentTypeEnum.values()));
-
-        Intent intent = getIntent();
-        Bundle bundle = intent.getExtras();
-
-        String sharedText;
-        Integer mode = (Integer) bundle.get("EXTRA_MODE");
-        if (mode != null)        //explicit intent
-            mMode = mode;
-        else {                    //implicit intent
-            // if the intent contains EXTRA_TEXT then it is a text intent only and does not contains a file
-            sharedText = (String) bundle.getCharSequence(Intent.EXTRA_TEXT);
-            if (sharedText != null)
-                mMode = EXTRA_MODE_TEXT_SHARE;
-            else
-                mMode = EXTRA_MODE_FILE_SHARE;
-        }
-
-        if (mMode == EXTRA_MODE_IMAGE_CAPTURE) {
-            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            // Ensure that there's a camera activity to handle the intent
-            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                // Create the File where the photo should go
-
-                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmSS").format(new Date());
-                String imageFileName = "JPEG_" + timeStamp + ".jpg";
-                fileNameEditText.setText(imageFileName);
-
-                File photoFile = null;
-                try {
-                    photoFile = File.createTempFile(imageFileName, ".jpg", this.getExternalFilesDir(null));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                // Continue only if the File was successfully created
-                if (photoFile.exists()) {
-                    mUri = Uri.fromFile(photoFile);
-                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
-                    startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-                }
-            }
-        }
-        // else implicit intent
-        else {
-
-            if (mMode == EXTRA_MODE_TEXT_SHARE) {
-                sharedText = (String) bundle.getCharSequence(Intent.EXTRA_TEXT);
-
-                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmSS").format(new Date());
-                String noteFileName = "NOTE_" + timeStamp + ".txt";
-                fileNameEditText.setText(noteFileName);
-
-                File noteFile = null;
-                try {
-                    noteFile = File.createTempFile(noteFileName, ".txt", this.getExternalFilesDir(null));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                // Continue only if the File was successfully created
-                if (noteFile.exists()) {
-                    try {
-                        FileOutputStream fOut = new FileOutputStream(noteFile);
-                        OutputStreamWriter out = new OutputStreamWriter(fOut);
-                        out.write(sharedText);
-                        out.close();
-                    } catch (FileNotFoundException e) {
-                        Log.e("Exception", "File write failed: " + e.toString());
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        Log.e("Exception", "File write failed: " + e.toString());
-                        e.printStackTrace();
-                    }
-                }
-                mUri = Uri.fromFile(noteFile);
-            } else if (mMode == EXTRA_MODE_FILE_SHARE) {
-
-                mUri = (Uri) bundle.get(Intent.EXTRA_STREAM);
-
-                ContentResolver cr = this.getContentResolver();
-                // get file name based on type Uri
-                String fileName;
-                // file type Uri
-                if (mUri.toString().startsWith("file")) {
-                    File file = new File(mUri.getPath());
-                    fileName = file.getName();
-                }
-                // content Uri
-                else {
-                    Cursor returnCursor = cr.query(mUri, null, null, null, null);
-                    int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                    returnCursor.moveToFirst();
-                    fileName = returnCursor.getString(nameIndex);
-                    returnCursor.close();
-                }
-
-                fileNameEditText.setText(fileName);
-            }
-
-
-        }
-
 
         tagAutoCompleteTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -262,6 +177,107 @@ public class AddFileActivity extends AppCompatActivity {
         // command to trigger textchanged event for determination of filetype
         fileNameEditText.setText(fileNameEditText.getText());
 
+        Intent intent = getIntent();
+        Bundle bundle = intent.getExtras();
+
+        String sharedText;
+        Integer mode = (Integer) bundle.get("EXTRA_MODE");
+        if (mode != null)        //explicit intent
+            mMode = mode;
+        else {                    //implicit intent
+            // if the intent contains EXTRA_TEXT then it is a text intent only and does not contains a file
+            sharedText = (String) bundle.getCharSequence(Intent.EXTRA_TEXT);
+            if (sharedText != null)
+                mMode = EXTRA_MODE_TEXT_SHARE;
+            else
+                mMode = EXTRA_MODE_FILE_SHARE;
+        }
+
+        if (mMode == EXTRA_MODE_IMAGE_CAPTURE) {
+            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            // Ensure that there's a camera activity to handle the intent
+            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                // Create the File where the photo should go
+
+                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmSS").format(new Date());
+                String imageFileName = "JPEG_" + timeStamp + ".jpg";
+                fileNameEditText.setText(imageFileName);
+
+                File photoFile = null;
+                try {
+                    photoFile = File.createTempFile(imageFileName, ".jpg", this.getExternalFilesDir(null));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                // Continue only if the File was successfully created
+                if (photoFile.exists()) {
+                    mUri = Uri.fromFile(photoFile);
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
+                    startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
+                }
+            }
+        }
+        // else implicit intent
+        else {
+
+            if (mMode == EXTRA_MODE_TEXT_SHARE) {
+                sharedText = (String) bundle.getCharSequence(Intent.EXTRA_TEXT);
+
+                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmSS").format(new Date());
+                String noteFileName = "NOTE_" + timeStamp + ".txt";
+                fileNameEditText.setText(noteFileName);
+
+                File noteFile = null;
+                try {
+                    noteFile = File.createTempFile(noteFileName, ".txt", this.getExternalFilesDir(null));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                // Continue only if the File was successfully created
+                if (noteFile.exists()) {
+                    try {
+                        FileOutputStream fOut = new FileOutputStream(noteFile);
+                        OutputStreamWriter out = new OutputStreamWriter(fOut);
+                        out.write(sharedText);
+                        out.close();
+                    } catch (FileNotFoundException e) {
+                        Log.e("Exception", "File write failed: " + e.toString());
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        Log.e("Exception", "File write failed: " + e.toString());
+                        e.printStackTrace();
+                    }
+                }
+                mUri = Uri.fromFile(noteFile);
+            } else if (mMode == EXTRA_MODE_FILE_SHARE) {
+
+                mUri = (Uri) bundle.get(Intent.EXTRA_STREAM);
+
+                ContentResolver cr = this.getContentResolver();
+                // get file name based on type Uri
+                String fileName;
+                // file type Uri
+                if (mUri.toString().startsWith("file")) {
+                    File file = new File(mUri.getPath());
+                    fileName = file.getName();
+                }
+                // content Uri
+                else {
+                    Cursor returnCursor = cr.query(mUri, null, null, null, null);
+                    int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    returnCursor.moveToFirst();
+                    fileName = returnCursor.getString(nameIndex);
+                    returnCursor.close();
+                }
+
+                fileNameEditText.setText(fileName);
+            }
+
+
+        }
+
     }
 
     public boolean isExternalStorageWritable() {
@@ -275,7 +291,12 @@ public class AddFileActivity extends AppCompatActivity {
     }
 
 
-    // function called on clicking the add file buttonSearch
+    /**
+     * method called on clicking the add file button.
+     * this function checks for the Storage state and for Unique tags property,
+     * that if adding this file will replace pre-existing files and displays the conformation dialog box with details.
+     * @param view
+     */
     public void addFileCheck(View view) {
         // check if the external storage is mounted
         if (!isExternalStorageWritable()) {
@@ -371,7 +392,7 @@ public class AddFileActivity extends AppCompatActivity {
         return fileName.substring(fileName.lastIndexOf(".")+1);
     }
 
-    // function called on clicking the add tag buttonSearch
+    // function called on clicking the add tag searchButton
     public void addTag(View view) {
         String tagName = tagAutoCompleteTextView.getText().toString().trim();
         if (!tagName.isEmpty()) {

@@ -13,7 +13,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import static android.R.attr.tag;
+import static android.R.attr.id;
 
 /**
  * Created by Vikalp on 05/02/2017.
@@ -24,7 +24,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     static final String markedFilesTable = "markedFiles";
     static final String colfileid = "_id";
-    static final String colfilename = "colfilename";
+    static final String colFilename = "colFilename";
     static final String colfileAddress = "colfileAddress";
     static final String colFileType = "colFileType";
 
@@ -62,8 +62,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return colfileid;
     }
 
-    public static String getColfilename() {
-        return colfilename;
+    public static String getColFilename() {
+        return colFilename;
     }
 
     public static String getColfileAddress() {
@@ -102,7 +102,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 " INTEGER PRIMARY KEY AUTOINCREMENT , " +
                 colfileAddress +
                 " TEXT , " +
-                colfilename +
+                colFilename +
                 " TEXT , " +
                 colFileType +
                 " INTEGER )"
@@ -279,7 +279,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put(DatabaseHandler.colfileAddress, fileAddress);
-        cv.put(DatabaseHandler.colfilename, filename);
+        cv.put(DatabaseHandler.colFilename, filename);
         cv.put(DatabaseHandler.colFileType, contentType.ordinal());
 
         return db.insert(markedFilesTable, null, cv);
@@ -363,44 +363,83 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @param searchString
      * @return
      */
-    public Cursor searchFilesByName(String searchString) {
+    public ArrayList<SmartContent> searchContentByString(String searchString) {
+
         SQLiteDatabase db = dbHandler.getReadableDatabase();
-        String pattern = "%" + searchString + "%";
-        Cursor cur = db.rawQuery("SELECT * FROM " +
+
+//        Cursor cur = db.rawQuery("SELECT " + markedFilesTable + "." + colfileid + " FROM " +
+//                        markedFilesTable + ", " + tagsTable + ", " + fileTagTable +
+//                        " WHERE " + markedFilesTable + "." + colfileid + "=" + fileTagTable + "." + colFtFileid +
+//                        " AND " + tagsTable + "." + coltagid + "=" + fileTagTable + "." + colFtTagid +
+//                        " AND (" +
+//                        coltagName +
+//                        " LIKE '%" +
+//                        searchString +
+//                        "%'" +
+//                        " OR " +
+//                        colFilename +
+//                        " LIKE '%" +
+//                        searchString +
+//                        "%')",
+//                null
+//        );
+//
+//        Cursor cur = db.rawQuery("SELECT newTable." + colfileid + " FROM " +
+//                        "(SELECT " + markedFilesTable + "." + colfileid + ", " + colFilename + ", " + colFtTagid + " FROM " +
+//                        markedFilesTable + " LEFT OUTER JOIN " + fileTagTable + " ON "+
+//                        markedFilesTable + "." + colfileid + " = " + fileTagTable + "." + colFtFileid + ") AS newTable, " +
+//                        tagsTable +
+//                        " ON " +
+//                        "newTable." + colfileid + " = " + fileTagTable + "." + colFtFileid
+//                        " WHERE " +
+////                        tagsTable + "." + coltagid + " = newTable." + colFtTagid +
+////                        " AND (" +
+//                        coltagName +
+//                        " LIKE '%" +
+//                        searchString +
+//                        "%'" +
+//                        " OR " +
+//                        colFilename +
+//                        " LIKE '%" +
+//                        searchString +
+//                        "%'",
+//                null
+//        );
+
+        Cursor cur = db.rawQuery("SELECT " + markedFilesTable + "." + colfileid + " FROM " +
                         markedFilesTable +
+                        " LEFT OUTER JOIN " +
+                        "(SELECT " + fileTagTable+"."+colFtTagid +", " + coltagName + ", " + colFtFileid+  " FROM " +
+                        fileTagTable + ", "+ tagsTable+
                         " WHERE " +
-                        colfilename +
-                        " LIKE \"" +
-                        pattern +
-                        "\"",
-                null
-        );
-
-        return cur;
-    }
-
-    /**
-     * method to return the files saved in the database based on a search by tagname
-     *
-     * @param tag
-     * @return the cursor containing resultset
-     */
-    public Cursor searchFilesByTag(String tag) {
-        SQLiteDatabase db = dbHandler.getReadableDatabase();
-
-        Cursor cur = db.rawQuery("SELECT " + markedFilesTable + "." + colfileid + ", " + colfilename + ", " + colfileAddress + " FROM " +
-                        markedFilesTable + ", " + tagsTable + ", " + fileTagTable +
-                        " WHERE " + markedFilesTable + "." + colfileid + "=" + fileTagTable + "." + colFtFileid +
-                        " AND " + tagsTable + "." + coltagid + "=" + fileTagTable + "." + colFtTagid +
-                        " AND " +
+                        tagsTable + "." + coltagid + " = "+ fileTagTable +"." + colFtTagid + ") AS newTable " +
+                        " ON "+
+                        "newTable." + colFtFileid + " = " + markedFilesTable + "." + colfileid +
+                        " WHERE " +
                         coltagName +
-                        " LIKE \"" +
-                        tag +
-                        "\"",
+                        " LIKE '%" +
+                        searchString +
+                        "%'" +
+                        " OR " +
+                        colFilename +
+                        " LIKE '%" +
+                        searchString +
+                        "%'",
                 null
         );
 
-        return cur;
+        ArrayList<SmartContent> result = new ArrayList<>();
+        HashMap<Long,Boolean> temp = new HashMap<>();
+        SmartContent sC;
+        while (cur.moveToNext()) {
+            sC = dbHandler.smartContentHash.get(cur.getLong(0));
+            if(temp.get(sC.getContentID()) == null){
+                result.add(sC);
+                temp.put(sC.getContentID(), true);
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -649,5 +688,25 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private void deleteFile(long contentID) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(markedFilesTable, "_id=?", new String[]{"" + contentID});
+    }
+
+    /**
+     * return the last 7 entries of SmartContent data
+     * @return
+     */
+    public ArrayList<SmartContent> getRecentContentData() {
+        ArrayList<SmartContent> result = new ArrayList<SmartContent>();
+        if(smartContentData.size() <= 7){
+            for(int i= smartContentData.size()-1 ; i>=0; i--){
+                result.add(smartContentData.get(i));
+            }
+        }
+        else{   //return 7 last entries
+            for(int i= smartContentData.size()-1 ; i>=smartContentData.size()-7; i--){
+                result.add(smartContentData.get(i));
+            }
+        }
+
+        return result;
     }
 }

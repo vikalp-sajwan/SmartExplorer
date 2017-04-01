@@ -1,6 +1,8 @@
 package com.example.vikalpsajwan.smartexplorer.UX;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -8,18 +10,21 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.MimeTypeMap;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.vikalpsajwan.smartexplorer.models.AndroidDatabaseManager;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 import com.example.vikalpsajwan.smartexplorer.R;
+import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
 
+import java.io.File;
 import java.util.ArrayList;
 
 //import static com.example.vikalpsajwan.smartexplorer.R.id.actvTag;
@@ -28,11 +33,12 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     // GUI elements layout 1
-    EditText editTextSearch;
+    EditText searchEditText;
     //CheckBox checkBoxName;
     //CheckBox checkBoxTag;
     //AutoCompleteTextView actvTag;
-    Button buttonSearch;
+    Button searchButton;
+    ListView recentContentListView;
 
     private DatabaseHandler dbHandler;
 
@@ -56,12 +62,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // binding GUI elements in Layout 1
-        editTextSearch = (EditText) findViewById(R.id.editText);
-        editTextSearch.clearFocus();
+        searchEditText = (EditText) findViewById(R.id.editText);
+        searchEditText.clearFocus();
         //checkBoxName = (CheckBox) findViewById(R.id.checkBoxName);
         //checkBoxTag = (CheckBox) findViewById(R.id.checkBoxTag);
-        buttonSearch = (Button) findViewById(R.id.button);
+        searchButton = (Button) findViewById(R.id.button);
         //actvTag = (AutoCompleteTextView) findViewById(actvTag);
+        recentContentListView = (ListView) findViewById(R.id.recentContentListview);
 
         dbHandler = DatabaseHandler.getDBInstance(getApplicationContext());
 
@@ -71,10 +78,37 @@ public class MainActivity extends AppCompatActivity {
         //actvTag.setThreshold(1);
         //actvTag.setAdapter(autoCompleteAdapter);
 
+        populateRecentContent();
+
         // demonstration purpose
         TextView demoTV = (TextView)findViewById(R.id.textView);
         dbHandler.populateDemoTV(demoTV);
 
+    }
+
+    public void populateRecentContent(){
+        final ArrayList<SmartContent> sCData = dbHandler.getRecentContentData();
+        FileListArrayAdapter flaa = new FileListArrayAdapter(this, R.layout.smart_content_list_item, sCData );
+        recentContentListView.setAdapter(flaa);
+        recentContentListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                File file = new File(sCData.get(position).getContentUnit().getAddress());
+                Uri uri = Uri.fromFile(file);
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+
+                String  extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
+                String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
+                intent.setDataAndType(uri, mimeType);
+
+                try{
+                    startActivity(intent);
+                }
+                catch (ActivityNotFoundException e){
+                    Toast.makeText(getApplicationContext(),"No suitable app found!!",Toast.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 
     @Override
@@ -83,6 +117,7 @@ public class MainActivity extends AppCompatActivity {
         TextView demoTV = (TextView)findViewById(R.id.textView);
         demoTV.setText(" ");
         dbHandler.populateDemoTV(demoTV);
+        populateRecentContent();
 
     }
 
@@ -99,21 +134,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * called on clicking Search buttonSearch in initial Layout
+     * called on clicking Search searchButton in initial Layout
      *
      * @param view
      */
     public void search(View view) {
 //        if (checkBoxTag.isChecked() || checkBoxName.isChecked()) {
 //
-//            String searchString = editTextSearch.getText().toString();
+        String searchString = searchEditText.getText().toString();
 //            String tag = actvTag.getText().toString();
 //
 //            if (checkBoxName.isChecked()) {
-//                if (searchString.trim().isEmpty()) {
-//                    Toast.makeText(getApplicationContext(), "please enter valid search string", Toast.LENGTH_SHORT).show();
-//                    return;
-//                }
+        if (searchString.trim().isEmpty()) {
+            Toast.makeText(getApplicationContext(), "please enter valid search string", Toast.LENGTH_SHORT).show();
+            searchEditText.setText("");
+            return;
+        }
+        searchByString(searchString);
 //            }
 //
 //            if (checkBoxTag.isChecked()) {
@@ -144,6 +181,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void searchByString(String searchString) {
+        Intent intent = new Intent(this, FilesListActivity.class);
+        intent.putExtra(FilesListActivity.EXTRA_SEARCH_MODE, FilesListActivity.SEARCH);
+        intent.putExtra(FilesListActivity.EXTRA_SEARCH_STRING, searchString);
+        startActivity(intent);
+    }
+
 
     /**
      * function to show all files activity when clicked on the show all files button in the Toolbar
@@ -154,31 +198,31 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    /**
-     * function to search files by tag in the sqlite database
-     * @param tag
-     */
-    private void searchByTag(String tag) {
+//    /**
+//     * function to search files by tag in the sqlite database
+//     * @param tag
+//     */
+//    private void searchByTag(String tag) {
 //        Intent intent = new Intent(this, FilesListActivity.class);
 //        intent.putExtra(FilesListActivity.EXTRA_SEARCH_MODE, FilesListActivity.SEARCH_BY_TAG);
 //        intent.putExtra(FilesListActivity.EXTRA_SEARCH_TAG, tag);
 //        startActivity(intent);
-    }
+//    }
 
 
-    public void searchByNameAndTag(String searchString, String tag) {
-
-    }
-
-    /**
-     * function to search files by name in the sqlite database
-     */
-    public void searchByName(String searchString) {
+//    public void searchByNameAndTag(String searchString, String tag) {
+//
+//    }
+//
+//    /**
+//     * function to search files by name in the sqlite database
+//     */
+//    public void searchByName(String searchString) {
 //        Intent intent = new Intent(this, FilesListActivity.class);
 //        intent.putExtra(FilesListActivity.EXTRA_SEARCH_MODE, FilesListActivity.SEARCH_BY_NAME);
 //        intent.putExtra(FilesListActivity.EXTRA_SEARCH_STRING, searchString);
 //        startActivity(intent);
-    }
+//    }
 
     /**
      * called on clicking show database (THIRD PARTY FEATURE) button in the main activity
