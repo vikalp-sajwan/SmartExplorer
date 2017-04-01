@@ -45,29 +45,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 
     private static DatabaseHandler dbHandler;
-
-    public ArrayList<SmartContent> getSmartContentData() {
-        return smartContentData;
-    }
-
-    public ArrayList<Tag> getTagData() {
-        return tagData;
-    }
-
+    public HashMap<Long, Tag> tagHash = new HashMap<Long, Tag>();
+    public HashMap<String, ContentTypeEnum> fileExtensionHash = new HashMap<String, ContentTypeEnum>();
     // data structure to load and hold the files data
     private ArrayList<SmartContent> smartContentData = new ArrayList<SmartContent>();
     private HashMap<Long, SmartContent> smartContentHash = new HashMap<Long, SmartContent>();
 
     // data structure to load and hold the tags data
     private ArrayList<Tag> tagData = new ArrayList<Tag>();
-
-    public HashMap<Long, Tag> getTagHash() {
-        return tagHash;
-    }
-
-    public HashMap<Long, Tag> tagHash = new HashMap<Long, Tag>();
-
-    public HashMap<String, ContentTypeEnum> fileExtensionHash = new HashMap<String, ContentTypeEnum>();
 
     private DatabaseHandler(Context context) {
         super(context, dbName, null, 1);
@@ -85,7 +70,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return colfileAddress;
     }
 
-
     public static DatabaseHandler getDBInstance(Context context) {
         if (dbHandler == null) {
             dbHandler = new DatabaseHandler(context);
@@ -96,6 +80,17 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
     }
 
+    public ArrayList<SmartContent> getSmartContentData() {
+        return smartContentData;
+    }
+
+    public ArrayList<Tag> getTagData() {
+        return tagData;
+    }
+
+    public HashMap<Long, Tag> getTagHash() {
+        return tagHash;
+    }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
@@ -161,7 +156,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 colFileExtension +
                 " TEXT , " +
                 colFileCategory +
-                " INTEGER "+
+                " INTEGER " +
                 ")"
 
         );
@@ -329,7 +324,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put(DatabaseHandler.coltagName, tagName);
-        if(isUnique)
+        if (isUnique)
             cv.put(DatabaseHandler.colIsUniqueTag, 1);
         else
             cv.put(DatabaseHandler.colIsUniqueTag, 0);
@@ -496,8 +491,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     *  method to load file and tags data from the
-     *  database and save them in appropriate data objects in memory
+     * method to load file and tags data from the
+     * database and save them in appropriate data objects in memory
      */
     public void loadData() {
         // getting tags data
@@ -505,8 +500,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Cursor cur = db.rawQuery("SELECT * FROM " + tagsTable, null);
 
         boolean isUnique;
-        while(cur.moveToNext()) {
-            if(cur.getInt(2)==0)
+        while (cur.moveToNext()) {
+            if (cur.getInt(2) == 0)
                 isUnique = false;
             else
                 isUnique = true;
@@ -519,18 +514,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         // getting file data
         cur = db.rawQuery("SELECT * FROM " + markedFilesTable, null);
-        while(cur.moveToNext()){
+        while (cur.moveToNext()) {
             SmartContent sC = new SmartContent(cur.getLong(0), cur.getString(1), cur.getString(2), cur.getInt(3));
             smartContentHash.put(cur.getLong(0), sC);
             smartContentData.add(sC);
         }
 
-        if (cur != null )
+        if (cur != null)
             cur.close();
 
         // getting tag file association data
         cur = db.rawQuery("SELECT * FROM " + fileTagTable, null);
-        while(cur.moveToNext()){
+        while (cur.moveToNext()) {
             Long contentID = cur.getLong(1);
             Long tagID = cur.getLong(2);
             smartContentHash.get(contentID).addTag(tagHash.get(tagID));
@@ -539,26 +534,26 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         //getting file extension data
         cur = db.rawQuery("SELECT * FROM " + fileTypesTable, null);
-        while(cur.moveToNext()){
+        while (cur.moveToNext()) {
             String extension = cur.getString(1);
             int fileCategory = cur.getInt(2);
 
             fileExtensionHash.put(extension, ContentTypeEnum.enumFromInt(fileCategory));
         }
-        if (cur != null )
+        if (cur != null)
             cur.close();
     }
 
-    public Tag addTagInMemory(long tagId, String tagName, boolean isUnique){
+    public Tag addTagInMemory(long tagId, String tagName, boolean isUnique) {
         Tag tag = new Tag(tagId, tagName, isUnique);
         tagData.add(tag);
         tagHash.put(tagId, tag);
         return tag;
     }
 
-    public SmartContent addSmartContentInMemory(long id, String address, String name, ArrayList<Long> associatedTags, ContentTypeEnum contentType){
+    public SmartContent addSmartContentInMemory(long id, String address, String name, ArrayList<Long> associatedTags, ContentTypeEnum contentType) {
         SmartContent sC = new SmartContent(id, address, name, contentType.ordinal());
-        for(long tagId: associatedTags){
+        for (long tagId : associatedTags) {
             sC.addTag(tagHash.get(tagId));
         }
         smartContentData.add(sC);
@@ -569,31 +564,32 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     // method to demonstrate tag and smartContent objects in memory
     public void populateDemoTV(TextView demoTV) {
-        for(Tag tag: tagData){
-            demoTV.append("tag name: "+tag.getTagName()+"\n"
-                    +"tag id: "+tag.getTagId()+"\n"
-                    +"Is Unique: "+tag.isUniqueContent() + "\n" +
+        for (int i = 0; i < tagData.size(); i++) {
+            demoTV.append("tag name: " + tagData.get(i).getTagName() + "\n"
+                    + "tag id: " + tagData.get(i).getTagId() + "\n"
+                    + "Is Unique: " + tagData.get(i).isUniqueContent() + "\n" +
                     "Associated files: "
             );
-            for(SmartContent sC: tag.getAssociatedContent()){
-                demoTV.append(sC.getContentFileName()+", ");
+            for (SmartContent sC : tagData.get(i).getAssociatedContent()) {
+                demoTV.append(sC.getContentFileName() + ", ");
             }
             demoTV.append("\n\n");
         }
 
         demoTV.append("-----#############-----\n\n");
 
-        for(SmartContent sC: smartContentData){
-            demoTV.append("content id: "+sC.getContentID()+"\n"+
-                    "alternate content: "+sC.getAlternateContent()+"\n"+
-                    "comment: "+sC.getComment()+"\n"+
-                    "file name:"+sC.getContentFileName()+"\n"+
-                    "file address:"+sC.getContentUnit().getAddress()+"\n"+
-                    "content type: "+sC.getContentUnit().getContentType()+"\n"+
+        for (int i = 0; i < smartContentData.size(); i++) {
+            demoTV.append("content id: " + smartContentData.get(i).getContentID() + "\n" +
+                    "alternate content: " + smartContentData.get(i).getAlternateContent() + "\n" +
+                    "comment: " + smartContentData.get(i).getComment() + "\n" +
+                    "file name:" + smartContentData.get(i).getContentFileName() + "\n" +
+                    "file address:" + smartContentData.get(i).getContentUnit().getAddress() + "\n" +
+                    "content type: " + smartContentData.get(i).getContentUnit().getContentType() + "\n" +
                     "Associate Tags: "
             );
-            for(Tag tag: sC.getAssociatedTags()){
-                demoTV.append(tag.getTagName()+"  ");
+            ArrayList<Tag> associatedTags = smartContentData.get(i).getAssociatedTags();
+            for (int j = 0; j < associatedTags.size(); j++) {
+                demoTV.append(associatedTags.get(j).getTagName() + "  ");
             }
             demoTV.append("\n\n");
         }
@@ -616,33 +612,33 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void updateTagUniqueness(long tagId, boolean isUnique) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
-        if(isUnique == true)
+        if (isUnique == true)
             cv.put(DatabaseHandler.colIsUniqueTag, 1);
         else
             cv.put(DatabaseHandler.colIsUniqueTag, 0);
-        db.update(DatabaseHandler.tagsTable, cv, "_id="+tagId, null);
+        db.update(DatabaseHandler.tagsTable, cv, "_id=" + tagId, null);
     }
 
     public void deleteFileTagEntry(long contentID, long tagId) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(fileTagTable,colFtFileid+"=? and "+colFtTagid+"=?",new String[]{""+contentID,""+tagId});
+        db.delete(fileTagTable, colFtFileid + "=? and " + colFtTagid + "=?", new String[]{"" + contentID, "" + tagId});
     }
 
     public void deleteSmartContent(SmartContent sC) {
         // delete in database
-        for(Tag tag: sC.getAssociatedTags()){
+        for (Tag tag : sC.getAssociatedTags()) {
             deleteFileTagEntry(sC.getContentID(), tag.getTagId());
         }
         deleteFile(sC.getContentID());
 
         // delete in storage
         File file = new File(sC.getContentUnit().getAddress());
-        if(file.exists()){
+        if (file.exists()) {
             file.delete();
         }
 
         // delete in memory
-        for(Tag tag: sC.getAssociatedTags()){
+        for (Tag tag : sC.getAssociatedTags()) {
             tag.getAssociatedContent().remove(sC);
         }
         smartContentHash.remove(sC.getContentID());
@@ -652,6 +648,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     private void deleteFile(long contentID) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(markedFilesTable,"_id=?" ,new String[]{""+contentID});
+        db.delete(markedFilesTable, "_id=?", new String[]{"" + contentID});
     }
 }
