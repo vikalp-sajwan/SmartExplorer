@@ -375,8 +375,10 @@ public class AddFileActivity extends AppCompatActivity {
 
             // if the fileType extension in new and user has selected filetype category other than "Other" then save it in database
 
-            if(dbHandler.fileExtensionHash.get(extension) == null && contentType != ContentTypeEnum.Other)
-                dbHandler.saveExtensionType(extension, contentType);
+            if(dbHandler.fileExtensionHash.get(extension) == null){
+                if(contentType != ContentTypeEnum.Other)
+                    dbHandler.saveExtensionType(extension, contentType);
+            }
             else
                 contentType = dbHandler.fileExtensionHash.get(extension);
             // create an instance of background Async task to copy file from intent mUri to app's private storage space

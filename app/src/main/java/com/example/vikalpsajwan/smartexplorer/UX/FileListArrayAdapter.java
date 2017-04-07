@@ -1,17 +1,24 @@
 package com.example.vikalpsajwan.smartexplorer.UX;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.example.vikalpsajwan.smartexplorer.R;
+import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
 import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
 import com.example.vikalpsajwan.smartexplorer.models.Tag;
 
+import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -39,6 +46,40 @@ public class FileListArrayAdapter extends ArrayAdapter<SmartContent> {
 
         SmartContent sC = SmartContentData.get(position);
          if(sC != null){
+             ImageView sContentThumb = (ImageView)v.findViewById(R.id.smart_content_thumb);
+             ImageView sContentThumbOverlay = (ImageView)v.findViewById(R.id.smart_content_thumb_overlay);
+
+             ContentTypeEnum ContentType = sC.getContentUnit().getContentType();
+             sContentThumbOverlay.setVisibility(View.INVISIBLE);
+
+             Drawable myDrawable;
+
+             if( ContentType == ContentTypeEnum.Image || ContentType == ContentTypeEnum.Video) {
+                 Glide.with(getContext())
+                         .load(new File(sC.getContentUnit().getAddress()))
+                         .thumbnail(0.1f)
+                         .centerCrop().
+                         into(sContentThumb);
+                 if( ContentType == ContentTypeEnum.Video){
+                     sContentThumbOverlay.setVisibility(View.VISIBLE);
+                 }
+             }
+             else {
+                 if (ContentType == ContentTypeEnum.Audio) {
+                     myDrawable = ContextCompat.getDrawable(getContext(), R.mipmap.ic_audio);
+                 } else if (ContentType == ContentTypeEnum.Document) {
+                     myDrawable = ContextCompat.getDrawable(getContext(), R.mipmap.ic_document);
+                 }else if (ContentType == ContentTypeEnum.Note) {
+                     myDrawable = ContextCompat.getDrawable(getContext(), R.mipmap.ic_note);
+                 }else if (ContentType == ContentTypeEnum.Location) {
+                     myDrawable = ContextCompat.getDrawable(getContext(), R.mipmap.ic_location);
+                 }else{
+                     myDrawable = ContextCompat.getDrawable(getContext(), R.mipmap.ic_other);
+                 }
+                 sContentThumb.setImageDrawable(myDrawable);
+             }
+
+
              TextView sContentName = (TextView)v.findViewById(R.id.smart_content_name);
              LinearLayout sContentTagContainer = (LinearLayout)v.findViewById(R.id.smart_content_tag_container);
 

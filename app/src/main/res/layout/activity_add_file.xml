@@ -78,6 +78,7 @@
 
                 <Button
                     android:id="@+id/addTagButton"
+                    style="@style/Widget.AppCompat.Button.Colored"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:maxLines="1"
@@ -103,9 +104,10 @@
 
     <Button
         android:id="@+id/addFileButton"
+        style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
 
+        android:layout_height="wrap_content"
         android:onClick="addFileCheck"
         android:text="Add File" />
 </LinearLayout>

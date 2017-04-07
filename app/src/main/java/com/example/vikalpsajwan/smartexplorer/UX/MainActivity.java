@@ -84,6 +84,18 @@ public class MainActivity extends AppCompatActivity {
         TextView demoTV = (TextView)findViewById(R.id.textView);
         dbHandler.populateDemoTV(demoTV);
 
+        // %%%%%%%%%%%%%%%%%%%%%%%%$$$$$$$$$$############
+        searchButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                startDB(null);
+                return true;
+            }
+        });
+
+
+        // %%%%%%%%%%%%%%%%%%%%$$$$$$$$$$$$$#############
+
     }
 
     public void populateRecentContent(){
