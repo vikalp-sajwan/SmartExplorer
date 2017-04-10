@@ -2,18 +2,17 @@ package com.example.vikalpsajwan.smartexplorer.UX;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.vikalpsajwan.smartexplorer.R;
+import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
 
@@ -63,13 +62,23 @@ public class FilesListActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                File file = new File(sCData.get(position).getContentUnit().getAddress());
-                Uri uri = Uri.fromFile(file);
-                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                Intent intent;
 
-                String  extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
-                String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
-                intent.setDataAndType(uri, mimeType);
+                ContentTypeEnum contentType = sCData.get(position).getContentUnit().getContentType();
+
+                if(contentType == ContentTypeEnum.Note || contentType == ContentTypeEnum.Location){
+                    intent = new Intent(getApplicationContext(), ViewNoteActivity.class);
+                    intent.putExtra(ViewNoteActivity.EXTRA_CONTENT_ID, sCData.get(position).getContentID());
+                }
+                else{
+                    File file = new File(sCData.get(position).getContentUnit().getAddress());
+                    Uri uri = Uri.fromFile(file);
+                    intent = new Intent(Intent.ACTION_VIEW, uri);
+                    String  extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
+                    String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
+                    intent.setDataAndType(uri, mimeType);
+                }
+
 
                 try{
                     startActivity(intent);

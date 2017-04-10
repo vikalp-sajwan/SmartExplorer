@@ -10,17 +10,16 @@ import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
 import com.example.vikalpsajwan.smartexplorer.models.Tag;
+import com.example.vikalpsajwan.smartexplorer.models.TextContent;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.ListIterator;
-
-import static android.R.attr.tag;
-import static android.R.id.list;
+import java.util.HashMap;
+import java.util.Scanner;
 
 
 /**
@@ -61,16 +60,39 @@ public class CopyFileUtility extends AsyncTask<Uri, Void, Void> {
         //      }
         //      dest = new File(dest+File.separator+fileName);
 
-        if (mode == AddFileActivity.EXTRA_MODE_FILE_SHARE) {
+        if (mode == AddContentActivity.EXTRA_MODE_FILE_SHARE) {
             copyFile(uris);
-        } else if (mode == AddFileActivity.EXTRA_MODE_IMAGE_CAPTURE || mode == AddFileActivity.EXTRA_MODE_TEXT_SHARE) {
+        } else if (mode == AddContentActivity.EXTRA_MODE_IMAGE_CAPTURE || mode == AddContentActivity.EXTRA_MODE_TEXT_SHARE) {
             renameFile(uris);
         }
 
         // add entry of file in app database and save the autoincrement id of file
         dbHandler = DatabaseHandler.getDBInstance(context);
-        long insertedFileId = dbHandler.addFile(fileName, mDest.getAbsolutePath(), contentType);
-        SmartContent sC = dbHandler.addSmartContentInMemory(insertedFileId, mDest.getAbsolutePath(), fileName, new ArrayList<Long>(), contentType);
+        long contentId = dbHandler.addFile(fileName, mDest.getAbsolutePath(), contentType);
+        SmartContent sC = dbHandler.addSmartContentInMemory(contentId, mDest.getAbsolutePath(), fileName, new ArrayList<Long>(), contentType);
+
+        // if content is of type text then copy its text in inmemory textContentHashMap structure
+        String contentText = new String();
+        HashMap<Long, TextContent> textContentHashMap = dbHandler.getTextContent();
+        if (sC.getContentUnit().getContentType() == ContentTypeEnum.Note
+                || sC.getContentUnit().getContentType() == ContentTypeEnum.Location) {
+            File file = new File(sC.getContentUnit().getAddress());
+            Scanner scanner = null;
+            try {
+                scanner = new Scanner(new FileInputStream(file));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            try {
+                while (scanner.hasNextLine()) {
+                    contentText = contentText.concat(scanner.nextLine() + "\n");
+                }
+            } finally {
+                scanner.close();
+            }
+            textContentHashMap.put(sC.getContentID(),new TextContent(sC.getContentID(), contentText));
+
+        }
 
         ArrayList<Long> associatedTags = new ArrayList<>();
 
@@ -127,7 +149,7 @@ public class CopyFileUtility extends AsyncTask<Uri, Void, Void> {
         }
 
         for(long addedTagId: addedTags){
-            dbHandler.addFileTagEntry(insertedFileId, addedTagId);
+            dbHandler.addFileTagEntry(contentId, addedTagId);
             sC.addTag(dbHandler.tagHash.get(addedTagId));
         }
 

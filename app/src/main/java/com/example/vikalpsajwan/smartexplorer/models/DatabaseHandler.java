@@ -10,8 +10,11 @@ import android.util.Log;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Scanner;
 
 import static android.R.attr.id;
 
@@ -43,6 +46,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     static final String colFileExtension = "colFileExtension";
     static final String colFileCategory = "colFileCategory";
 
+    static final String textTable = "text";
+    static final String colTextid = "_id";
+    static final String colTextContentid = "colTextContentid";
+    static final String colText = "colText";
+
 
     private static DatabaseHandler dbHandler;
     public HashMap<Long, Tag> tagHash = new HashMap<Long, Tag>();
@@ -53,6 +61,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     // data structure to load and hold the tags data
     private ArrayList<Tag> tagData = new ArrayList<Tag>();
+    // data Structure to store text Content in memory
+    private HashMap<Long, TextContent> textContent = new HashMap<Long, TextContent>();
 
     private DatabaseHandler(Context context) {
         super(context, dbName, null, 1);
@@ -73,11 +83,19 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static DatabaseHandler getDBInstance(Context context) {
         if (dbHandler == null) {
             dbHandler = new DatabaseHandler(context);
-            dbHandler.loadData();
+            try {
+                dbHandler.loadData();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
             return dbHandler;
         } else {
             return dbHandler;
         }
+    }
+
+    public HashMap<Long, TextContent> getTextContent() {
+        return textContent;
     }
 
     public ArrayList<SmartContent> getSmartContentData() {
@@ -409,11 +427,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         Cursor cur = db.rawQuery("SELECT " + markedFilesTable + "." + colfileid + " FROM " +
                         markedFilesTable +
                         " LEFT OUTER JOIN " +
-                        "(SELECT " + fileTagTable+"."+colFtTagid +", " + coltagName + ", " + colFtFileid+  " FROM " +
-                        fileTagTable + ", "+ tagsTable+
+                        "(SELECT " + fileTagTable + "." + colFtTagid + ", " + coltagName + ", " + colFtFileid + " FROM " +
+                        fileTagTable + ", " + tagsTable +
                         " WHERE " +
-                        tagsTable + "." + coltagid + " = "+ fileTagTable +"." + colFtTagid + ") AS newTable " +
-                        " ON "+
+                        tagsTable + "." + coltagid + " = " + fileTagTable + "." + colFtTagid + ") AS newTable " +
+                        " ON " +
                         "newTable." + colFtFileid + " = " + markedFilesTable + "." + colfileid +
                         " WHERE " +
                         coltagName +
@@ -429,11 +447,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         );
 
         ArrayList<SmartContent> result = new ArrayList<>();
-        HashMap<Long,Boolean> temp = new HashMap<>();
+        HashMap<Long, Boolean> temp = new HashMap<>();
         SmartContent sC;
         while (cur.moveToNext()) {
             sC = dbHandler.smartContentHash.get(cur.getLong(0));
-            if(temp.get(sC.getContentID()) == null){
+            if (temp.get(sC.getContentID()) == null) {
                 result.add(sC);
                 temp.put(sC.getContentID(), true);
             }
@@ -533,7 +551,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * method to load file and tags data from the
      * database and save them in appropriate data objects in memory
      */
-    public void loadData() {
+    public void loadData() throws FileNotFoundException {
         // getting tags data
         SQLiteDatabase db = dbHandler.getReadableDatabase();
         Cursor cur = db.rawQuery("SELECT * FROM " + tagsTable, null);
@@ -557,6 +575,23 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             SmartContent sC = new SmartContent(cur.getLong(0), cur.getString(1), cur.getString(2), cur.getInt(3));
             smartContentHash.put(cur.getLong(0), sC);
             smartContentData.add(sC);
+            String contentText = new String();
+
+            // if content is of type text then copy its text in inmemory textContent structure
+            if (sC.getContentUnit().getContentType() == ContentTypeEnum.Note
+                    || sC.getContentUnit().getContentType() == ContentTypeEnum.Location) {
+                File file = new File(sC.getContentUnit().getAddress());
+                Scanner scanner = new Scanner(new FileInputStream(file));
+                try {
+                    while (scanner.hasNextLine()) {
+                        contentText = contentText.concat(scanner.nextLine() + "\n");
+                    }
+                } finally {
+                    scanner.close();
+                }
+            }
+
+            textContent.put(sC.getContentID(),new TextContent(sC.getContentID(), contentText));
         }
 
         if (cur != null)
@@ -692,17 +727,17 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     /**
      * return the last 7 entries of SmartContent data
+     *
      * @return
      */
     public ArrayList<SmartContent> getRecentContentData() {
         ArrayList<SmartContent> result = new ArrayList<SmartContent>();
-        if(smartContentData.size() <= 7){
-            for(int i= smartContentData.size()-1 ; i>=0; i--){
+        if (smartContentData.size() <= 7) {
+            for (int i = smartContentData.size() - 1; i >= 0; i--) {
                 result.add(smartContentData.get(i));
             }
-        }
-        else{   //return 7 last entries
-            for(int i= smartContentData.size()-1 ; i>=smartContentData.size()-7; i--){
+        } else {   //return 7 last entries
+            for (int i = smartContentData.size() - 1; i >= smartContentData.size() - 7; i--) {
                 result.add(smartContentData.get(i));
             }
         }

@@ -59,7 +59,7 @@ import static android.widget.Toast.LENGTH_LONG;
  * Created by Vikalp on 04/02/2017.
  */
 
-public class AddFileActivity extends AppCompatActivity {
+public class AddContentActivity extends AppCompatActivity {
     public static final int EXTRA_MODE_FILE_SHARE = 0;
     public static final int EXTRA_MODE_TEXT_SHARE = 1;
     public static final int EXTRA_MODE_IMAGE_CAPTURE = 2;
@@ -110,72 +110,10 @@ public class AddFileActivity extends AppCompatActivity {
         addTagButton = (Button) findViewById(R.id.addTagButton);
         contentCategorySpinner = (Spinner) findViewById(R.id.contentCategorySpinner);
 
+
         contentCategorySpinner.setAdapter(new ArrayAdapter<ContentTypeEnum>(this, R.layout.file_category_spinner_item, ContentTypeEnum.values()));
 
-        tagAutoCompleteTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                addTagButton.performClick();
-            }
-        });
 
-        tagAutoCompleteTextView.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (s.length() > 2 && s.charAt(s.length() - 1) == '\n') {
-                    tagAutoCompleteTextView.setText(s.toString().toCharArray(), 0, s.length() - 1);
-                    addTagButton.performClick();
-                }
-            }
-        });
-
-        fileNameEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                String fileName = s.toString();
-                if(isFilenameValid(fileName)){
-                    String extension = getExtensionFromName(fileName);
-
-                    ContentTypeEnum filetype = dbHandler.fileExtensionHash.get(extension);
-                    if (filetype != null) {
-                        contentCategorySpinner.setSelection(filetype.ordinal());
-                    } else {
-                        contentCategorySpinner.setSelection(ContentTypeEnum.Other.ordinal());
-                    }
-                } else {
-                    contentCategorySpinner.setSelection(ContentTypeEnum.Other.ordinal());
-                }
-            }
-
-        });
-
-        ArrayList<String> autoCompleteTagList = dbHandler.getTagNames();
-        ArrayAdapter<String> autoCompleteAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);
-        tagAutoCompleteTextView.setThreshold(1);
-        tagAutoCompleteTextView.setAdapter(autoCompleteAdapter);
-
-        // command to trigger textchanged event for determination of filetype
-        fileNameEditText.setText(fileNameEditText.getText());
 
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
@@ -194,6 +132,8 @@ public class AddFileActivity extends AppCompatActivity {
         }
 
         if (mMode == EXTRA_MODE_IMAGE_CAPTURE) {
+            contentCategorySpinner.setSelection(ContentTypeEnum.Image.ordinal(), true);
+            contentCategorySpinner.setEnabled(false);
             Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             // Ensure that there's a camera activity to handle the intent
             if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
@@ -222,10 +162,13 @@ public class AddFileActivity extends AppCompatActivity {
         else {
 
             if (mMode == EXTRA_MODE_TEXT_SHARE) {
+                contentCategorySpinner.setSelection(ContentTypeEnum.Note.ordinal(), true);
+                contentCategorySpinner.setEnabled(false);
+
                 sharedText = (String) bundle.getCharSequence(Intent.EXTRA_TEXT);
 
                 String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmSS").format(new Date());
-                String noteFileName = "NOTE_" + timeStamp + ".txt";
+                String noteFileName = "NOTE_" + timeStamp;
                 fileNameEditText.setText(noteFileName);
 
                 File noteFile = null;
@@ -273,10 +216,77 @@ public class AddFileActivity extends AppCompatActivity {
                 }
 
                 fileNameEditText.setText(fileName);
+                fileNameEditText.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        String fileName = s.toString();
+                        if(isFilenameValid(fileName)){
+                            String extension = getExtensionFromName(fileName);
+
+                            ContentTypeEnum filetype = dbHandler.fileExtensionHash.get(extension);
+                            if (filetype != null) {
+                                contentCategorySpinner.setSelection(filetype.ordinal());
+                            } else {
+                                contentCategorySpinner.setSelection(ContentTypeEnum.Other.ordinal());
+                            }
+                        } else {
+                            contentCategorySpinner.setSelection(ContentTypeEnum.Other.ordinal());
+                        }
+                    }
+
+                });
+
             }
 
 
         }
+
+
+        tagAutoCompleteTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                addTagButton.performClick();
+            }
+        });
+
+        tagAutoCompleteTextView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (s.length() > 2 && s.charAt(s.length() - 1) == '\n') {
+                    tagAutoCompleteTextView.setText(s.toString().toCharArray(), 0, s.length() - 1);
+                    addTagButton.performClick();
+                }
+            }
+        });
+
+
+        ArrayList<String> autoCompleteTagList = dbHandler.getTagNames();
+        ArrayAdapter<String> autoCompleteAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);
+        tagAutoCompleteTextView.setThreshold(1);
+        tagAutoCompleteTextView.setAdapter(autoCompleteAdapter);
+
+        // command to trigger textchanged event for determination of filetype
+        fileNameEditText.setText(fileNameEditText.getText());
 
     }
 
@@ -297,7 +307,7 @@ public class AddFileActivity extends AppCompatActivity {
      * that if adding this file will replace pre-existing files and displays the conformation dialog box with details.
      * @param view
      */
-    public void addFileCheck(View view) {
+    public void addContentCheck(View view) {
         // check if the external storage is mounted
         if (!isExternalStorageWritable()) {
             Toast.makeText(getApplicationContext(), "External Storage not Mounted !! Try again later.", LENGTH_LONG).show();
@@ -370,21 +380,25 @@ public class AddFileActivity extends AppCompatActivity {
         ContentTypeEnum contentType = ContentTypeEnum.enumFromInt(contentCategorySpinner.getSelectedItemPosition());
 
         String fileName = fileNameEditText.getText().toString().trim();
-        if (isFilenameValid(fileName)) {
+        if (contentType == ContentTypeEnum.Note || isFilenameValid(fileName)) {
+            if (contentType == ContentTypeEnum.Note){
+                fileName = fileName.concat(".txt");
+            }
+            else{
             String extension = getExtensionFromName(fileName);
 
             // if the fileType extension in new and user has selected filetype category other than "Other" then save it in database
 
-            if(dbHandler.fileExtensionHash.get(extension) == null){
-                if(contentType != ContentTypeEnum.Other)
-                    dbHandler.saveExtensionType(extension, contentType);
+                if (dbHandler.fileExtensionHash.get(extension) == null) {
+                    if (contentType != ContentTypeEnum.Other)
+                        dbHandler.saveExtensionType(extension, contentType);
+                }
             }
-            else
-                contentType = dbHandler.fileExtensionHash.get(extension);
             // create an instance of background Async task to copy file from intent mUri to app's private storage space
             copyUtil = new CopyFileUtility(getApplicationContext(), mfileTags, mfileTagsUniqueness, fileName, contentType, mMode);
             // start background task and finish UI activity
             copyUtil.execute(mUri);
+
             this.finish();
         } else
             Toast.makeText(getApplicationContext(), "please enter valid file name", Toast.LENGTH_SHORT);
