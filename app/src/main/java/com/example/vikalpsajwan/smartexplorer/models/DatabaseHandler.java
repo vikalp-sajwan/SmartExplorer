@@ -705,6 +705,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
         deleteFile(sC.getContentID());
 
+        // delete text in main memory in case of text type content
+        textContent.remove(sC.getContentID());
+
         // delete in storage
         File file = new File(sC.getContentUnit().getAddress());
         if (file.exists()) {
