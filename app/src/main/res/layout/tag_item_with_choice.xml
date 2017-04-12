@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="0dp"
+    android:layout_marginBottom="2dp"
+    android:background="@android:color/white"
+    android:elevation="2dp"
     android:orientation="horizontal">
 
     <TextView xmlns:android="http://schemas.android.com/apk/res/android"
@@ -25,11 +29,25 @@
 
     <CheckBox
         android:id="@+id/UniquenessCheckBox"
+        style="@style/Widget.AppCompat.CompoundButton.CheckBox"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:gravity="center_vertical"
         android:layoutDirection="rtl"
         android:soundEffectsEnabled="true"
-        android:text="Unique "
-        android:textColor="#f2f2f2" />
+        android:text="UNIQUE "
+        android:textColor="@color/colorPrimaryDark"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/remove_tag_button"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_width="wrap_content"
+
+        android:layout_height="match_parent"
+
+        android:text="Remove"
+        android:textColor="@android:color/white" />
 
 </LinearLayout>

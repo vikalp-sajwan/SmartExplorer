@@ -25,13 +25,12 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.MultiAutoCompleteTextView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -40,6 +39,7 @@ import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 import com.example.vikalpsajwan.smartexplorer.R;
 import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
+import com.example.vikalpsajwan.smartexplorer.models.StopWordsProvider;
 import com.example.vikalpsajwan.smartexplorer.models.Tag;
 
 import java.io.File;
@@ -52,8 +52,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
-import static android.text.TextUtils.concat;
 import static android.widget.Toast.LENGTH_LONG;
+import static com.example.vikalpsajwan.smartexplorer.R.id.view;
 
 /**
  * Created by Vikalp on 04/02/2017.
@@ -72,13 +72,17 @@ public class AddContentActivity extends AppCompatActivity {
     HashMap<String, Boolean> addedTags = new HashMap<>();
     Uri mUri;
     EditText fileNameEditText;
-    AutoCompleteTextView tagAutoCompleteTextView;
-    Button addTagButton;
-    Button addFileButton;
+//    AutoCompleteTextView tagAutoCompleteTextView;
+//    Button addTagButton;
+    Button addContentButton;
     LinearLayout tagContainer;
     Spinner contentCategorySpinner;
+    MultiAutoCompleteTextView mactv;
     private DatabaseHandler dbHandler;
     private CopyFileUtility copyUtil;
+
+    // HashMap of once removed tags by user and which are to be avoided when typed again in same session
+    HashMap<String, Boolean> removedTags;
 
     /**
      * Dispatch incoming result to the correct fragment.
@@ -99,22 +103,63 @@ public class AddContentActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_file);
+        setContentView(R.layout.activity_add_content);
 
         dbHandler = DatabaseHandler.getDBInstance(getApplicationContext());
 
         fileNameEditText = (EditText) findViewById(R.id.filenameEditText);
-        tagAutoCompleteTextView = (AutoCompleteTextView) findViewById(R.id.tagAutoCompleteTextView);
-        tagContainer = (LinearLayout) findViewById(R.id.tagContainer);
-        addFileButton = (Button) findViewById(R.id.addFileButton);
-        addTagButton = (Button) findViewById(R.id.addTagButton);
+//        tagAutoCompleteTextView = (AutoCompleteTextView) findViewById(R.id.tagAutoCompleteTextView);
+        tagContainer = (LinearLayout) findViewById(R.id.tag_container);
+        addContentButton = (Button) findViewById(R.id.addFileButton);
+//        addTagButton = (Button) findViewById(R.id.addTagButton);
         contentCategorySpinner = (Spinner) findViewById(R.id.contentCategorySpinner);
+        mactv = (MultiAutoCompleteTextView) findViewById(R.id.description_mactv);
 
+        removedTags = new HashMap<String, Boolean>();
 
         contentCategorySpinner.setAdapter(new ArrayAdapter<ContentTypeEnum>(this, R.layout.file_category_spinner_item, ContentTypeEnum.values()));
 
+        ArrayList<String> autoCompleteTagList = dbHandler.getTagNames();
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);
+        mactv.setAdapter(adapter);
+        mactv.setThreshold(2);
+        mactv.setTokenizer(new SpaceTokenizer());
 
+        mactv.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+                String text = mactv.getText().toString();
+                int lastIndex = text.length()-1;
+                int i, startIndex;
+                if(text.length()>0 && text.charAt(lastIndex) == ' '){
+                    i = lastIndex-1;
+                    while(i>0 && text.charAt(i)!=' ')
+                        i--;
+                    if(i==0)
+                        startIndex = i;
+                    else
+                        startIndex = i+1;
+                    String word = text.subSequence(startIndex, lastIndex).toString();
+
+                    if(removedTags.get(word) == null)
+                        addTagInContainer(word);
+                }
+
+            }
+
+        });
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
 
@@ -252,38 +297,38 @@ public class AddContentActivity extends AppCompatActivity {
         }
 
 
-        tagAutoCompleteTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                addTagButton.performClick();
-            }
-        });
+//        tagAutoCompleteTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                addTagButton.performClick();
+//            }
+//        });
+//
+//        tagAutoCompleteTextView.addTextChangedListener(new TextWatcher() {
+//            @Override
+//            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+//
+//            }
+//
+//            @Override
+//            public void onTextChanged(CharSequence s, int start, int before, int count) {
+//
+//            }
+//
+//            @Override
+//            public void afterTextChanged(Editable s) {
+//                if (s.length() > 2 && s.charAt(s.length() - 1) == '\n') {
+//                    tagAutoCompleteTextView.setText(s.toString().toCharArray(), 0, s.length() - 1);
+//                    addTagButton.performClick();
+//                }
+//            }
+//        });
 
-        tagAutoCompleteTextView.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (s.length() > 2 && s.charAt(s.length() - 1) == '\n') {
-                    tagAutoCompleteTextView.setText(s.toString().toCharArray(), 0, s.length() - 1);
-                    addTagButton.performClick();
-                }
-            }
-        });
 
 
-        ArrayList<String> autoCompleteTagList = dbHandler.getTagNames();
-        ArrayAdapter<String> autoCompleteAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);
-        tagAutoCompleteTextView.setThreshold(1);
-        tagAutoCompleteTextView.setAdapter(autoCompleteAdapter);
+//        ArrayAdapter<String> autoCompleteAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);
+//        tagAutoCompleteTextView.setThreshold(1);
+//        tagAutoCompleteTextView.setAdapter(autoCompleteAdapter);
 
         // command to trigger textchanged event for determination of filetype
         fileNameEditText.setText(fileNameEditText.getText());
@@ -408,17 +453,57 @@ public class AddContentActivity extends AppCompatActivity {
         return fileName.substring(fileName.lastIndexOf(".")+1);
     }
 
-    // function called on clicking the add tag searchButton
-    public void addTag(View view) {
-        String tagName = tagAutoCompleteTextView.getText().toString().trim();
-        if (!tagName.isEmpty()) {
-            //mfileTags.add(tagName);
+//    // function called on clicking the add tag searchButton
+//    public void addTag(View view) {
+//        String tagName = tagAutoCompleteTextView.getText().toString().trim();
+//        if (!tagName.isEmpty()) {
+//            //mfileTags.add(tagName);
+//            if (addedTags.get(tagName) == null)
+//                addedTags.put(tagName, true);
+//            else
+//                return;
+//            LayoutInflater li = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+//            LinearLayout ll = (LinearLayout) li.inflate(R.layout.tag_item_with_choice, tagContainer, false);
+//            long tagId = dbHandler.isTagPresent(tagName);
+//            if (tagId != -1) {
+//                // disable the checkbox for already existing tags
+//                CheckBox cb = (CheckBox) ll.getChildAt(2);
+//
+//                if (dbHandler.getTagHash().get(tagId).isUniqueContent()) {
+//                    ll.getChildAt(0).setBackgroundColor(Color.parseColor("#cf2376"));
+//                    cb.setChecked(true);
+//                }
+//            }
+//            TextView tv = (TextView) ll.getChildAt(0);
+//            tv.setText(tagName);
+//            tagContainer.addView(ll);
+//        } else {
+//            Toast.makeText(getApplicationContext(), "please enter valid tag name", Toast.LENGTH_SHORT);
+//        }
+//        tagAutoCompleteTextView.setText("");
+//    }
+
+    // function to add tag
+    public void addTagInContainer(String tagName) {
+
+        if (!tagName.isEmpty() && !StopWordsProvider.isStopWord(tagName)) {
+
             if (addedTags.get(tagName) == null)
                 addedTags.put(tagName, true);
             else
                 return;
             LayoutInflater li = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             LinearLayout ll = (LinearLayout) li.inflate(R.layout.tag_item_with_choice, tagContainer, false);
+            Button removeButton = (Button)ll.findViewById(R.id.remove_tag_button);
+            removeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    LinearLayout ll = (LinearLayout)v.getParent();
+                    TextView tv = (TextView) ll.getChildAt(0);
+                    removedTags.put(tv.getText().toString(), true);
+                    tagContainer.removeView((View)v.getParent());
+                }
+            });
             long tagId = dbHandler.isTagPresent(tagName);
             if (tagId != -1) {
                 // disable the checkbox for already existing tags
@@ -432,10 +517,8 @@ public class AddContentActivity extends AppCompatActivity {
             TextView tv = (TextView) ll.getChildAt(0);
             tv.setText(tagName);
             tagContainer.addView(ll);
-        } else {
-            Toast.makeText(getApplicationContext(), "please enter valid tag name", Toast.LENGTH_SHORT);
         }
-        tagAutoCompleteTextView.setText("");
+
     }
 
     public boolean isFilenameValid(String name){
@@ -457,4 +540,5 @@ public class AddContentActivity extends AppCompatActivity {
         }
         super.onBackPressed();
     }
+
 }

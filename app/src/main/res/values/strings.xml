@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Smart Explorer</string>
+    <string name="title">Title</string>
 </resources>
