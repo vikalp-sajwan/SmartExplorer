@@ -81,6 +81,8 @@ public class AddContentActivity extends AppCompatActivity {
     private DatabaseHandler dbHandler;
     private CopyFileUtility copyUtil;
 
+    // a variable to keep count of length of text in description box - used in afterTextChanged
+    private int previousDescriptionLength = 0 ;
     // HashMap of once removed tags by user and which are to be avoided when typed again in same session
     HashMap<String, Boolean> removedTags;
 
@@ -127,6 +129,7 @@ public class AddContentActivity extends AppCompatActivity {
         mactv.setTokenizer(new SpaceTokenizer());
 
         mactv.addTextChangedListener(new TextWatcher() {
+
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
@@ -141,22 +144,65 @@ public class AddContentActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
 
                 String text = mactv.getText().toString();
-                int lastIndex = text.length()-1;
-                int i, startIndex;
-                if(text.length()>0 && text.charAt(lastIndex) == ' '){
-                    i = lastIndex-1;
-                    while(i>0 && text.charAt(i)!=' ')
-                        i--;
-                    if(i==0)
-                        startIndex = i;
-                    else
-                        startIndex = i+1;
-                    String word = text.subSequence(startIndex, lastIndex).toString();
+                int len = text.length();
+                //Log.i("TESTING %%%%", text+" "+len+" " +previousDescriptionLength);
+                if(len == 0 || len<previousDescriptionLength) { // to avoid the cases deletion by user
+                    previousDescriptionLength = len;
+                    return;
+                }
+                int lastIndex = len-1;
+                if( len - previousDescriptionLength == 1){
+                    // case of typed character
+                    // just check the last character inputted, if its a space then extract last word
+                    int i;
+                    if(text.charAt(lastIndex) == ' '){
+                        i = lastIndex-1;
+                        // for the case when space is pressed consecutively
+                        // if last inputted character was space then don't do anything
+                        if(lastIndex>=0 && !Character.isWhitespace(text.charAt(lastIndex)))
+                        extractWordAndAddTag(text, i);
+                    }
+                }else{
+                    // case of pasted text -- extract all the words from string and add as tag
+                    // it is taken care of that the already added tags are not added again
+                    // ****###&&&*****   misses the test case when there is already some text in the description box and user replaces that text
+                    // by pasting some different text whose length is 1 more than the length of previous text.
+                    int i = lastIndex;
+                    while(i >= 0 ){
+                        if(!Character.isWhitespace(text.charAt(i)))
+                            i = extractWordAndAddTag(text, i);
 
-                    if(removedTags.get(word) == null)
-                        addTagInContainer(word);
+                        i--;
+                    }
                 }
 
+                previousDescriptionLength = len;
+
+            }
+
+            /**
+             * this method extracts a word from the text by treating space as a word separator and adds it to the tag container
+             * if it is not a stop-word or one from the earlier removed tags
+             * @param text  the text String
+             * @param lastIndex the index of the last character of the word to be extracted
+             * @return returns the starting index of the extracted word
+             */
+            public int extractWordAndAddTag(String text, int lastIndex){
+                int i, startIndex;
+
+                i = lastIndex;
+                while(i>0 && text.charAt(i)!=' ')
+                    i--;
+                if(i==0)
+                    startIndex = i;
+                else
+                    startIndex = i+1;
+                String word = text.subSequence(startIndex, lastIndex+1).toString();
+
+                if(removedTags.get(word) == null)
+                    addTagInContainer(word);
+
+                return startIndex;
             }
 
         });
@@ -516,7 +562,7 @@ public class AddContentActivity extends AppCompatActivity {
             }
             TextView tv = (TextView) ll.getChildAt(0);
             tv.setText(tagName);
-            tagContainer.addView(ll);
+            tagContainer.addView(ll, 0 );
         }
 
     }

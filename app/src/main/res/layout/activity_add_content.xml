@@ -69,6 +69,7 @@
                 android:layout_marginTop="5dp"
                 android:layout_weight="1"
                 android:hint="Description"
+                android:inputType="text"
                 android:lines="1"
                 android:maxLines="1"
                 android:textSize="16sp" />
