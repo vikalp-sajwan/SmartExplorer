@@ -1,7 +1,6 @@
 package com.example.vikalpsajwan.smartexplorer.UX;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
@@ -56,7 +55,7 @@ public class FileListArrayAdapter extends ArrayAdapter<SmartContent> {
 
              if( ContentType == ContentTypeEnum.Image || ContentType == ContentTypeEnum.Video) {
                  Glide.with(getContext())
-                         .load(new File(sC.getContentUnit().getAddress()))
+                         .load(new File(sC.getContentUnit().getContentAddress()))
                          .thumbnail(0.1f)
                          .centerCrop().
                          into(sContentThumb);
@@ -82,18 +81,20 @@ public class FileListArrayAdapter extends ArrayAdapter<SmartContent> {
 
              TextView sContentName = (TextView)v.findViewById(R.id.smart_content_name);
              LinearLayout sContentTagContainer = (LinearLayout)v.findViewById(R.id.smart_content_tag_container);
+             TextView sContentDescription = (TextView)v.findViewById(R.id.content_description);
 
-             sContentName.setText(sC.getContentFileName());
+             sContentName.setText(sC.getContentName());
+             sContentDescription.setText(sC.getContentDescription());
              sContentTagContainer.removeAllViews();
-             for(Tag tag : sC.getAssociatedTags()){
+             ArrayList<Tag> associatedTags = sC.getAssociatedTags();
+             for(int i=0; i< associatedTags.size(); i++){
                  TextView tagTV;
-                 if(tag.isUniqueContent())
+                 if(associatedTags.get(i).isUniqueContent())
                      tagTV = (TextView)inflater.inflate(R.layout.tag_item_unique, sContentTagContainer, false);
                  else
                      tagTV = (TextView)inflater.inflate(R.layout.tag_item, sContentTagContainer, false);
-                 tagTV.setText(tag.getTagName());
+                 tagTV.setText(associatedTags.get(i).getTagName());
                  sContentTagContainer.addView(tagTV);
-
              }
          }
          return v;

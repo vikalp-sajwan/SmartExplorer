@@ -152,7 +152,7 @@ public class FilesListActivity extends AppCompatActivity {
                     intent.putExtra(ViewNoteActivity.EXTRA_CONTENT_ID, sCData.get(position).getContentID());
                 }
                 else{
-                    File file = new File(sCData.get(position).getContentUnit().getAddress());
+                    File file = new File(sCData.get(position).getContentUnit().getContentAddress());
                     Uri uri = Uri.fromFile(file);
                     intent = new Intent(Intent.ACTION_VIEW, uri);
                     String  extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());

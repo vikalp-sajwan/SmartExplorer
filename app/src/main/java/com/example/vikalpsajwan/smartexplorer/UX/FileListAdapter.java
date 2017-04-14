@@ -39,9 +39,9 @@ public class FileListAdapter extends CursorAdapter {
         super(context, c, flags);
         dbHandler = DatabaseHandler.getDBInstance(context);
         inflater = LayoutInflater.from(context);
-        fileNameIndex = c.getColumnIndex(DatabaseHandler.getColFilename());
-        filePathIndex = c.getColumnIndex(DatabaseHandler.getColfileAddress());
-        fileIdIndex = c.getColumnIndex(DatabaseHandler.getColfileid());
+        fileNameIndex = c.getColumnIndex(DatabaseHandler.getColContentName());
+        filePathIndex = c.getColumnIndex(DatabaseHandler.getColContentAddress());
+        fileIdIndex = c.getColumnIndex(DatabaseHandler.getColContentId());
 
     }
 

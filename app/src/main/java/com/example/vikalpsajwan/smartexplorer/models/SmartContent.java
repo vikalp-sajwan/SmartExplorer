@@ -7,27 +7,34 @@ import java.util.ArrayList;
  */
 
 public class SmartContent{
+
+
     private long contentID;
     private ContentUnit contentUnit;
     private ContentUnit[] alternateContent;
-    private String contentFileName;
-    private String comment;
+    private String contentName;
+    private String contentDescription;
     private ArrayList<Tag> associatedTags;
 
-    public SmartContent(long contentID, ContentUnit contentUnit, String contentFileName){
+    public SmartContent(long contentID, ContentUnit contentUnit, String contentName, String contentDescription){
         this.contentID = contentID;
         this.contentUnit = contentUnit;
-        this.contentFileName = contentFileName;
+        this.contentName = contentName;
+        this.contentDescription = contentDescription;
         associatedTags = new ArrayList<Tag>();
-        comment = null;
         alternateContent = null;
     }
 
-    public SmartContent(long id, String fileAddress, String fileName, int fileType) {
+    public SmartContent(long id, String fileAddress, String fileName, String contentDescription, int fileType) {
         this.contentID = id;
-        this.contentFileName = fileName;
+        this.contentName = fileName;
+        this.contentDescription = contentDescription;
         associatedTags = new ArrayList<Tag>();
         contentUnit = new ContentUnit(fileAddress, fileType);
+    }
+
+    public String getContentDescription() {
+        return contentDescription;
     }
 
     public void addTag(Tag tag){
@@ -38,6 +45,10 @@ public class SmartContent{
         return contentID;
     }
 
+    public void setContentID(long contentID) {
+        this.contentID = contentID;
+    }
+
     public ContentUnit getContentUnit() {
         return contentUnit;
     }
@@ -46,12 +57,8 @@ public class SmartContent{
         return alternateContent;
     }
 
-    public String getContentFileName() {
-        return contentFileName;
-    }
-
-    public String getComment() {
-        return comment;
+    public String getContentName() {
+        return contentName;
     }
 
     public ArrayList<Tag> getAssociatedTags() {

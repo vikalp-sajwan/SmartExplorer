@@ -16,8 +16,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
-import static android.R.attr.id;
-
 /**
  * Created by Vikalp on 05/02/2017.
  */
@@ -25,31 +23,32 @@ import static android.R.attr.id;
 public class DatabaseHandler extends SQLiteOpenHelper {
     static final String dbName = "SmartExplorerDB";
 
-    static final String markedFilesTable = "markedFiles";
-    static final String colfileid = "_id";
-    static final String colFilename = "colFilename";
-    static final String colfileAddress = "colfileAddress";
-    static final String colFileType = "colFileType";
+    static final String contentTable = "content";
+    static final String colContentId = "_id";
+    static final String colContentName = "colContentName";
+    static final String colContentDescription = "colContentDescription";
+    static final String colContentAddress = "colContentAddress";
+    static final String colContentType = "colContentType";
 
     static final String tagsTable = "tags";
-    static final String coltagid = "_id";
+    static final String coltagId = "_id";
     static final String coltagName = "coltagName";
     static final String colIsUniqueTag = "colIsUniqueTag";
 
-    static final String fileTagTable = "fileTag";
-    static final String colFileTagid = "_id";
-    static final String colFtFileid = "colFtFileid";
-    static final String colFtTagid = "colFtTagid";
+    static final String contentTagTable = "contentTag";
+    static final String colContentTagid = "_id";
+    static final String colCtContentId = "colCtContentId";
+    static final String colCtTagId = "colCtTagId";
 
-    static final String fileTypesTable = "fileTypes";
-    static final String colFileTypeid = "_id";
-    static final String colFileExtension = "colFileExtension";
-    static final String colFileCategory = "colFileCategory";
+    static final String contentTypesTable = "contentTypes";
+    static final String colContentTypeId = "_id";
+    static final String colContentExtension = "colContentExtension";
+    static final String colContentCategory = "colContentCategory";
 
-    static final String textTable = "text";
-    static final String colTextid = "_id";
-    static final String colTextContentid = "colTextContentid";
-    static final String colText = "colText";
+//    static final String textTable = "text";
+//    static final String colTextid = "_id";
+//    static final String colTextContentid = "colTextContentid";
+//    static final String colText = "colText";
 
 
     private static DatabaseHandler dbHandler;
@@ -68,16 +67,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         super(context, dbName, null, 1);
     }
 
-    public static String getColfileid() {
-        return colfileid;
+    public static String getColContentId() {
+        return colContentId;
     }
 
-    public static String getColFilename() {
-        return colFilename;
+    public static String getColContentName() {
+        return colContentName;
     }
 
-    public static String getColfileAddress() {
-        return colfileAddress;
+    public static String getColContentAddress() {
+        return colContentAddress;
     }
 
     public static DatabaseHandler getDBInstance(Context context) {
@@ -114,15 +113,17 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         //create files details table
         db.execSQL("CREATE TABLE " +
-                markedFilesTable +
+                contentTable +
                 " (" +
-                colfileid +
+                colContentId +
                 " INTEGER PRIMARY KEY AUTOINCREMENT , " +
-                colfileAddress +
+                colContentAddress +
                 " TEXT , " +
-                colFilename +
+                colContentName +
                 " TEXT , " +
-                colFileType +
+                colContentDescription +
+                " TEXT , " +
+                colContentType +
                 " INTEGER )"
 
         );
@@ -130,7 +131,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE " +
                 tagsTable +
                 " (" +
-                coltagid +
+                coltagId +
                 " INTEGER PRIMARY KEY AUTOINCREMENT , " +
                 coltagName +
                 " TEXT ," +
@@ -151,29 +152,29 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         // create file and tag relationship table
         db.execSQL("CREATE TABLE " +
-                fileTagTable +
+                contentTagTable +
                 " (" +
-                colFileTagid +
+                colContentTagid +
                 " INTEGER PRIMARY KEY AUTOINCREMENT , " +
-                colFtFileid +
+                colCtContentId +
                 " INTEGER ," +
-                colFtTagid +
+                colCtTagId +
                 " INTEGER," +
-                "FOREIGN KEY (" + colFtFileid + ") REFERENCES " + markedFilesTable + "(" + colfileid + ") ," +
-                "FOREIGN KEY (" + colFtTagid + ") REFERENCES " + tagsTable + "(" + coltagid + ")" +
+                "FOREIGN KEY (" + colCtContentId + ") REFERENCES " + contentTable + "(" + colContentId + ") ," +
+                "FOREIGN KEY (" + colCtTagId + ") REFERENCES " + tagsTable + "(" + coltagId + ")" +
                 ")"
 
         );
 
         // create filetypes table which maps file extension to ContentTypeEnum
         db.execSQL("CREATE TABLE " +
-                fileTypesTable +
+                contentTypesTable +
                 " (" +
-                colFileTypeid +
+                colContentTypeId +
                 " INTEGER PRIMARY KEY AUTOINCREMENT , " +
-                colFileExtension +
+                colContentExtension +
                 " TEXT , " +
-                colFileCategory +
+                colContentCategory +
                 " INTEGER " +
                 ")"
 
@@ -255,27 +256,27 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         ContentValues cv = new ContentValues();
         for (String extension : image) {
-            cv.put(DatabaseHandler.colFileExtension, extension);
-            cv.put(DatabaseHandler.colFileCategory, ContentTypeEnum.Image.ordinal());
-            db.insert(fileTypesTable, null, cv);
+            cv.put(DatabaseHandler.colContentExtension, extension);
+            cv.put(DatabaseHandler.colContentCategory, ContentTypeEnum.Image.ordinal());
+            db.insert(contentTypesTable, null, cv);
             cv.clear();
         }
         for (String extension : video) {
-            cv.put(DatabaseHandler.colFileExtension, extension);
-            cv.put(DatabaseHandler.colFileCategory, ContentTypeEnum.Video.ordinal());
-            db.insert(fileTypesTable, null, cv);
+            cv.put(DatabaseHandler.colContentExtension, extension);
+            cv.put(DatabaseHandler.colContentCategory, ContentTypeEnum.Video.ordinal());
+            db.insert(contentTypesTable, null, cv);
             cv.clear();
         }
         for (String extension : audio) {
-            cv.put(DatabaseHandler.colFileExtension, extension);
-            cv.put(DatabaseHandler.colFileCategory, ContentTypeEnum.Audio.ordinal());
-            db.insert(fileTypesTable, null, cv);
+            cv.put(DatabaseHandler.colContentExtension, extension);
+            cv.put(DatabaseHandler.colContentCategory, ContentTypeEnum.Audio.ordinal());
+            db.insert(contentTypesTable, null, cv);
             cv.clear();
         }
         for (String extension : document) {
-            cv.put(DatabaseHandler.colFileExtension, extension);
-            cv.put(DatabaseHandler.colFileCategory, ContentTypeEnum.Document.ordinal());
-            db.insert(fileTypesTable, null, cv);
+            cv.put(DatabaseHandler.colContentExtension, extension);
+            cv.put(DatabaseHandler.colContentCategory, ContentTypeEnum.Document.ordinal());
+            db.insert(contentTypesTable, null, cv);
             cv.clear();
         }
 
@@ -293,14 +294,15 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * @param fileAddress
      * @return
      */
-    public long addFile(String filename, String fileAddress, ContentTypeEnum contentType) {
+    public long addFile(String filename, String fileAddress, String contentDescription, ContentTypeEnum contentType) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
-        cv.put(DatabaseHandler.colfileAddress, fileAddress);
-        cv.put(DatabaseHandler.colFilename, filename);
-        cv.put(DatabaseHandler.colFileType, contentType.ordinal());
+        cv.put(DatabaseHandler.colContentAddress, fileAddress);
+        cv.put(DatabaseHandler.colContentName, filename);
+        cv.put(DatabaseHandler.colContentDescription, contentDescription);
+        cv.put(DatabaseHandler.colContentType, contentType.ordinal());
 
-        return db.insert(markedFilesTable, null, cv);
+        return db.insert(contentTable, null, cv);
     }
 
     /**
@@ -312,7 +314,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public long isTagPresent(String tagName) {
         SQLiteDatabase db = dbHandler.getReadableDatabase();
         long returnValue = -1;
-        Cursor cur = db.rawQuery("SELECT " + coltagid + " FROM " +
+        Cursor cur = db.rawQuery("SELECT " + coltagId + " FROM " +
                 tagsTable +
                 " WHERE " +
                 coltagName +
@@ -323,7 +325,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             return returnValue;
         else {
             cur.moveToFirst();
-            int colIndex = cur.getColumnIndex(coltagid);
+            int colIndex = cur.getColumnIndex(coltagId);
             returnValue = cur.getLong(colIndex);
         }
         if (cur != null)
@@ -359,9 +361,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void addFileTagEntry(long fileId, long tagId) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
-        cv.put(DatabaseHandler.colFtFileid, fileId);
-        cv.put(DatabaseHandler.colFtTagid, tagId);
-        db.insert(fileTagTable, null, cv);
+        cv.put(DatabaseHandler.colCtContentId, fileId);
+        cv.put(DatabaseHandler.colCtTagId, tagId);
+        db.insert(contentTagTable, null, cv);
     }
 
     /**
@@ -371,7 +373,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      */
     public Cursor getAllFiles() {
         SQLiteDatabase db = dbHandler.getReadableDatabase();
-        Cursor cur = db.rawQuery("SELECT * FROM " + markedFilesTable, null);
+        Cursor cur = db.rawQuery("SELECT * FROM " + contentTable, null);
         return cur;
     }
 
@@ -385,61 +387,61 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         SQLiteDatabase db = dbHandler.getReadableDatabase();
 
-//        Cursor cur = db.rawQuery("SELECT " + markedFilesTable + "." + colfileid + " FROM " +
-//                        markedFilesTable + ", " + tagsTable + ", " + fileTagTable +
-//                        " WHERE " + markedFilesTable + "." + colfileid + "=" + fileTagTable + "." + colFtFileid +
-//                        " AND " + tagsTable + "." + coltagid + "=" + fileTagTable + "." + colFtTagid +
+//        Cursor cur = db.rawQuery("SELECT " + contentTable + "." + colContentId + " FROM " +
+//                        contentTable + ", " + tagsTable + ", " + contentTagTable +
+//                        " WHERE " + contentTable + "." + colContentId + "=" + contentTagTable + "." + colCtContentId +
+//                        " AND " + tagsTable + "." + coltagId + "=" + contentTagTable + "." + colCtTagId +
 //                        " AND (" +
 //                        coltagName +
 //                        " LIKE '%" +
 //                        searchString +
 //                        "%'" +
 //                        " OR " +
-//                        colFilename +
+//                        colContentName +
 //                        " LIKE '%" +
 //                        searchString +
 //                        "%')",
 //                null
 //        );
 //
-//        Cursor cur = db.rawQuery("SELECT newTable." + colfileid + " FROM " +
-//                        "(SELECT " + markedFilesTable + "." + colfileid + ", " + colFilename + ", " + colFtTagid + " FROM " +
-//                        markedFilesTable + " LEFT OUTER JOIN " + fileTagTable + " ON "+
-//                        markedFilesTable + "." + colfileid + " = " + fileTagTable + "." + colFtFileid + ") AS newTable, " +
+//        Cursor cur = db.rawQuery("SELECT newTable." + colContentId + " FROM " +
+//                        "(SELECT " + contentTable + "." + colContentId + ", " + colContentName + ", " + colCtTagId + " FROM " +
+//                        contentTable + " LEFT OUTER JOIN " + contentTagTable + " ON "+
+//                        contentTable + "." + colContentId + " = " + contentTagTable + "." + colCtContentId + ") AS newTable, " +
 //                        tagsTable +
 //                        " ON " +
-//                        "newTable." + colfileid + " = " + fileTagTable + "." + colFtFileid
+//                        "newTable." + colContentId + " = " + contentTagTable + "." + colCtContentId
 //                        " WHERE " +
-////                        tagsTable + "." + coltagid + " = newTable." + colFtTagid +
+////                        tagsTable + "." + coltagId + " = newTable." + colCtTagId +
 ////                        " AND (" +
 //                        coltagName +
 //                        " LIKE '%" +
 //                        searchString +
 //                        "%'" +
 //                        " OR " +
-//                        colFilename +
+//                        colContentName +
 //                        " LIKE '%" +
 //                        searchString +
 //                        "%'",
 //                null
 //        );
 
-        Cursor cur = db.rawQuery("SELECT " + markedFilesTable + "." + colfileid + " FROM " +
-                        markedFilesTable +
+        Cursor cur = db.rawQuery("SELECT " + contentTable + "." + colContentId + " FROM " +
+                        contentTable +
                         " LEFT OUTER JOIN " +
-                        "(SELECT " + fileTagTable + "." + colFtTagid + ", " + coltagName + ", " + colFtFileid + " FROM " +
-                        fileTagTable + ", " + tagsTable +
+                        "(SELECT " + contentTagTable + "." + colCtTagId + ", " + coltagName + ", " + colCtContentId + " FROM " +
+                        contentTagTable + ", " + tagsTable +
                         " WHERE " +
-                        tagsTable + "." + coltagid + " = " + fileTagTable + "." + colFtTagid + ") AS newTable " +
+                        tagsTable + "." + coltagId + " = " + contentTagTable + "." + colCtTagId + ") AS newTable " +
                         " ON " +
-                        "newTable." + colFtFileid + " = " + markedFilesTable + "." + colfileid +
+                        "newTable." + colCtContentId + " = " + contentTable + "." + colContentId +
                         " WHERE " +
                         coltagName +
                         " LIKE '%" +
                         searchString +
                         "%'" +
                         " OR " +
-                        colFilename +
+                        colContentName +
                         " LIKE '%" +
                         searchString +
                         "%'",
@@ -485,9 +487,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public ArrayList<String> getAssociatedTags(long fileid) {
         SQLiteDatabase db = dbHandler.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT " + coltagName + " FROM "
-                        + tagsTable + ", " + fileTagTable +
-                        " WHERE " + tagsTable + "." + coltagid + " = " + colFtTagid +
-                        " AND " + colFtFileid + " = " + fileid
+                        + tagsTable + ", " + contentTagTable +
+                        " WHERE " + tagsTable + "." + coltagId + " = " + colCtTagId +
+                        " AND " + colCtContentId + " = " + fileid
                 , null);
 
         ArrayList<String> associatedTags = new ArrayList<String>();
@@ -570,9 +572,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 
         // getting file data
-        cur = db.rawQuery("SELECT * FROM " + markedFilesTable, null);
+        cur = db.rawQuery("SELECT * FROM " + contentTable, null);
         while (cur.moveToNext()) {
-            SmartContent sC = new SmartContent(cur.getLong(0), cur.getString(1), cur.getString(2), cur.getInt(3));
+            SmartContent sC = new SmartContent(cur.getLong(0), cur.getString(1), cur.getString(2), cur.getString(3), cur.getInt(4));
             smartContentHash.put(cur.getLong(0), sC);
             smartContentData.add(sC);
             String contentText = new String();
@@ -580,7 +582,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             // if content is of type text then copy its text in inmemory textContent structure
             if (sC.getContentUnit().getContentType() == ContentTypeEnum.Note
                     || sC.getContentUnit().getContentType() == ContentTypeEnum.Location) {
-                File file = new File(sC.getContentUnit().getAddress());
+                File file = new File(sC.getContentUnit().getContentAddress());
                 Scanner scanner = new Scanner(new FileInputStream(file));
                 try {
                     while (scanner.hasNextLine()) {
@@ -598,7 +600,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             cur.close();
 
         // getting tag file association data
-        cur = db.rawQuery("SELECT * FROM " + fileTagTable, null);
+        cur = db.rawQuery("SELECT * FROM " + contentTagTable, null);
         while (cur.moveToNext()) {
             Long contentID = cur.getLong(1);
             Long tagID = cur.getLong(2);
@@ -607,7 +609,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
 
         //getting file extension data
-        cur = db.rawQuery("SELECT * FROM " + fileTypesTable, null);
+        cur = db.rawQuery("SELECT * FROM " + contentTypesTable, null);
         while (cur.moveToNext()) {
             String extension = cur.getString(1);
             int fileCategory = cur.getInt(2);
@@ -625,14 +627,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return tag;
     }
 
-    public SmartContent addSmartContentInMemory(long id, String address, String name, ArrayList<Long> associatedTags, ContentTypeEnum contentType) {
-        SmartContent sC = new SmartContent(id, address, name, contentType.ordinal());
-        for (long tagId : associatedTags) {
-            sC.addTag(tagHash.get(tagId));
-        }
+    public void addSmartContentInMemory(SmartContent sC) {
+
         smartContentData.add(sC);
-        smartContentHash.put(id, sC);
-        return sC;
+        smartContentHash.put(sC.getContentID(), sC);
+
     }
 
 
@@ -644,8 +643,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                     + "Is Unique: " + tagData.get(i).isUniqueContent() + "\n" +
                     "Associated files: "
             );
-            for (SmartContent sC : tagData.get(i).getAssociatedContent()) {
-                demoTV.append(sC.getContentFileName() + ", ");
+            ArrayList<SmartContent> associatedContent = tagData.get(i).getAssociatedContent();
+            for(int j =0 ; i<associatedContent.size(); j++){
+                demoTV.append(associatedContent.get(j).getContentName() + ", ");
             }
             demoTV.append("\n\n");
         }
@@ -655,9 +655,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         for (int i = 0; i < smartContentData.size(); i++) {
             demoTV.append("content id: " + smartContentData.get(i).getContentID() + "\n" +
                     "alternate content: " + smartContentData.get(i).getAlternateContent() + "\n" +
-                    "comment: " + smartContentData.get(i).getComment() + "\n" +
-                    "file name:" + smartContentData.get(i).getContentFileName() + "\n" +
-                    "file address:" + smartContentData.get(i).getContentUnit().getAddress() + "\n" +
+                    "Description: " + smartContentData.get(i).getContentDescription() + "\n" +
+                    "file name:" + smartContentData.get(i).getContentName() + "\n" +
+                    "file address:" + smartContentData.get(i).getContentUnit().getContentAddress() + "\n" +
                     "content type: " + smartContentData.get(i).getContentUnit().getContentType() + "\n" +
                     "Associate Tags: "
             );
@@ -675,10 +675,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void saveExtensionType(String extension, ContentTypeEnum contentType) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
-        cv.put(DatabaseHandler.colFileExtension, extension);
-        cv.put(DatabaseHandler.colFileCategory, contentType.ordinal());
+        cv.put(DatabaseHandler.colContentExtension, extension);
+        cv.put(DatabaseHandler.colContentCategory, contentType.ordinal());
 
-        db.insert(fileTypesTable, null, cv);
+        db.insert(contentTypesTable, null, cv);
 
         fileExtensionHash.put(extension, contentType);
     }
@@ -695,7 +695,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public void deleteFileTagEntry(long contentID, long tagId) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(fileTagTable, colFtFileid + "=? and " + colFtTagid + "=?", new String[]{"" + contentID, "" + tagId});
+        db.delete(contentTagTable, colCtContentId + "=? and " + colCtTagId + "=?", new String[]{"" + contentID, "" + tagId});
     }
 
     public void deleteSmartContent(SmartContent sC) {
@@ -709,7 +709,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         textContent.remove(sC.getContentID());
 
         // delete in storage
-        File file = new File(sC.getContentUnit().getAddress());
+        File file = new File(sC.getContentUnit().getContentAddress());
         if (file.exists()) {
             file.delete();
         }
@@ -725,7 +725,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     private void deleteFile(long contentID) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(markedFilesTable, "_id=?", new String[]{"" + contentID});
+        db.delete(contentTable, "_id=?", new String[]{"" + contentID});
     }
 
     /**

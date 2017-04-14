@@ -27,7 +27,6 @@ import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 import com.example.vikalpsajwan.smartexplorer.R;
 import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
-import com.example.vikalpsajwan.smartexplorer.models.TextContent;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -205,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
                     intent.putExtra(ViewNoteActivity.EXTRA_CONTENT_ID, sCData.get(position).getContentID());
                 }
                 else{
-                    File file = new File(sCData.get(position).getContentUnit().getAddress());
+                    File file = new File(sCData.get(position).getContentUnit().getContentAddress());
                     Uri uri = Uri.fromFile(file);
                     intent = new Intent(Intent.ACTION_VIEW, uri);
                     String  extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());

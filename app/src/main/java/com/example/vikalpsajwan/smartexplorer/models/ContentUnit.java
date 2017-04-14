@@ -5,29 +5,33 @@ package com.example.vikalpsajwan.smartexplorer.models;
  */
 
 public class ContentUnit {
-    private String address;
+    private String contentAddress;
     private ContentTypeEnum contentType;
 
-    public ContentUnit(String source, ContentTypeEnum contentType){
-        this.address = source;
+    public ContentUnit(ContentTypeEnum contentType){
         this.contentType = contentType;
-
     }
+
+//    public ContentUnit(String source, ContentTypeEnum contentType){
+//        this.contentAddress = source;
+//        this.contentType = contentType;
+//
+//    }
 
 
 
     public ContentUnit(String fileAddress, int fileType) {
         contentType = ContentTypeEnum.enumFromInt(fileType);
-        address = fileAddress;
+        contentAddress = fileAddress;
 
     }
 
-    public String getAddress() {
-        return address;
+    public String getContentAddress() {
+        return contentAddress;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
+    public void setContentAddress(String contentAddress) {
+        this.contentAddress = contentAddress;
     }
 
     public ContentTypeEnum getContentType() {

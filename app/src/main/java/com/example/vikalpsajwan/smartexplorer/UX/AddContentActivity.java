@@ -36,6 +36,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
+import com.example.vikalpsajwan.smartexplorer.models.ContentUnit;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 import com.example.vikalpsajwan.smartexplorer.R;
 import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
@@ -53,7 +54,6 @@ import java.util.Date;
 import java.util.HashMap;
 
 import static android.widget.Toast.LENGTH_LONG;
-import static com.example.vikalpsajwan.smartexplorer.R.id.view;
 
 /**
  * Created by Vikalp on 04/02/2017.
@@ -77,7 +77,7 @@ public class AddContentActivity extends AppCompatActivity {
     Button addContentButton;
     LinearLayout tagContainer;
     Spinner contentCategorySpinner;
-    MultiAutoCompleteTextView mactv;
+    MultiAutoCompleteTextView descriptionMACTV;
     private DatabaseHandler dbHandler;
     private CopyFileUtility copyUtil;
 
@@ -115,7 +115,7 @@ public class AddContentActivity extends AppCompatActivity {
         addContentButton = (Button) findViewById(R.id.addFileButton);
 //        addTagButton = (Button) findViewById(R.id.addTagButton);
         contentCategorySpinner = (Spinner) findViewById(R.id.contentCategorySpinner);
-        mactv = (MultiAutoCompleteTextView) findViewById(R.id.description_mactv);
+        descriptionMACTV = (MultiAutoCompleteTextView) findViewById(R.id.description_mactv);
 
         removedTags = new HashMap<String, Boolean>();
 
@@ -124,11 +124,11 @@ public class AddContentActivity extends AppCompatActivity {
         ArrayList<String> autoCompleteTagList = dbHandler.getTagNames();
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);
-        mactv.setAdapter(adapter);
-        mactv.setThreshold(2);
-        mactv.setTokenizer(new SpaceTokenizer());
+        descriptionMACTV.setAdapter(adapter);
+        descriptionMACTV.setThreshold(2);
+        descriptionMACTV.setTokenizer(new SpaceTokenizer());
 
-        mactv.addTextChangedListener(new TextWatcher() {
+        descriptionMACTV.addTextChangedListener(new TextWatcher() {
 
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -143,7 +143,7 @@ public class AddContentActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
 
-                String text = mactv.getText().toString();
+                String text = descriptionMACTV.getText().toString();
                 int len = text.length();
                 //Log.i("TESTING %%%%", text+" "+len+" " +previousDescriptionLength);
                 if(len == 0 || len<previousDescriptionLength) { // to avoid the cases deletion by user
@@ -418,7 +418,7 @@ public class AddContentActivity extends AppCompatActivity {
                 Tag tagObject = dbHandler.tagHash.get(tagId);
                 dialogBoxMessage = dialogBoxMessage.concat(tagObject.getTagName()+" : ");
                 for(SmartContent sC: tagObject.getAssociatedContent()){
-                    dialogBoxMessage = dialogBoxMessage.concat("\n\t"+sC.getContentFileName());
+                    dialogBoxMessage = dialogBoxMessage.concat("\n\t"+sC.getContentName());
                 }
             }
 
@@ -471,6 +471,7 @@ public class AddContentActivity extends AppCompatActivity {
         ContentTypeEnum contentType = ContentTypeEnum.enumFromInt(contentCategorySpinner.getSelectedItemPosition());
 
         String fileName = fileNameEditText.getText().toString().trim();
+        String contentDescription = descriptionMACTV.getText().toString();
         if (contentType == ContentTypeEnum.Note || isFilenameValid(fileName)) {
             if (contentType == ContentTypeEnum.Note){
                 fileName = fileName.concat(".txt");
@@ -485,8 +486,11 @@ public class AddContentActivity extends AppCompatActivity {
                         dbHandler.saveExtensionType(extension, contentType);
                 }
             }
+
+            // this object will not have the contentId and contentAddress and needs to be updated in copyUtility Class
+            SmartContent sC = new SmartContent(0, new ContentUnit(contentType), fileName, contentDescription);
             // create an instance of background Async task to copy file from intent mUri to app's private storage space
-            copyUtil = new CopyFileUtility(getApplicationContext(), mfileTags, mfileTagsUniqueness, fileName, contentType, mMode);
+            copyUtil = new CopyFileUtility(getApplicationContext(), sC, mfileTags, mfileTagsUniqueness, mMode);
             // start background task and finish UI activity
             copyUtil.execute(mUri);
 

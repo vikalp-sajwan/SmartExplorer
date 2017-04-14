@@ -2,9 +2,12 @@
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_margin="2dp"
+    android:layout_marginRight="4dp"
     android:background="#6e45c1"
     android:maxLines="1"
-    android:padding="1dp"
+    android:paddingBottom="1dp"
+    android:paddingLeft="2dp"
+    android:paddingRight="2dp"
+    android:paddingTop="1dp"
     android:textColor="@android:color/white"
-    android:textSize="15sp" />
+    android:textSize="14sp" />

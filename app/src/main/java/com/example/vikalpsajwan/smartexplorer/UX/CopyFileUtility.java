@@ -32,18 +32,22 @@ public class CopyFileUtility extends AsyncTask<Uri, Void, Void> {
     private DatabaseHandler dbHandler;
     private ArrayList<String> tagNames;
     private ArrayList<Boolean> tagsUniqueness;
-    private String fileName;
+    private String contentName;
     private int mode;
     private ContentTypeEnum contentType;
     private File mDest;
+    private SmartContent sC;    // this object will not have the contentId and contentAddress and needs to be updated in this class
+    private String contentDescription;
 
-    public CopyFileUtility(Context context, ArrayList<String> TagNames, ArrayList<Boolean> mfileTagsUniqueness, String filename, ContentTypeEnum contentType, int mode) {
+    public CopyFileUtility(Context context, SmartContent sC, ArrayList<String> TagNames, ArrayList<Boolean> mfileTagsUniqueness, int mode) {
         this.tagNames = TagNames;
         this.tagsUniqueness = mfileTagsUniqueness;
         this.context = context;
-        this.fileName = filename;
+        this.sC = sC;
         this.mode = mode;
-        this.contentType = contentType;
+        this.contentName = sC.getContentName();
+        this.contentType = sC.getContentUnit().getContentType();
+        this.contentDescription = sC.getContentDescription();
     }
 
     @Override
@@ -51,14 +55,14 @@ public class CopyFileUtility extends AsyncTask<Uri, Void, Void> {
 
         // get destination directory
         // option 1 - save in private space in external storage
-        mDest = new File(context.getExternalFilesDir(null) + File.separator + fileName);
+        mDest = new File(context.getExternalFilesDir(null) + File.separator + contentName);
 
         //      option 2 - save in public space by making an app Folder to save files external storage root
         //      File dest = new File(Environment.getExternalStorageDirectory()+File.separator+"Smart Explorer");
         //      if(!dest.exists() || !dest.isDirectory()){
         //          dest.mkdir();
         //      }
-        //      dest = new File(dest+File.separator+fileName);
+        //      dest = new File(dest+File.separator+contentName);
 
         if (mode == AddContentActivity.EXTRA_MODE_FILE_SHARE) {
             copyFile(uris);
@@ -66,17 +70,22 @@ public class CopyFileUtility extends AsyncTask<Uri, Void, Void> {
             renameFile(uris);
         }
 
-        // add entry of file in app database and save the autoincrement id of file
+        // add entry of file in app database and save the autoincrement id of SmartContent
         dbHandler = DatabaseHandler.getDBInstance(context);
-        long contentId = dbHandler.addFile(fileName, mDest.getAbsolutePath(), contentType);
-        SmartContent sC = dbHandler.addSmartContentInMemory(contentId, mDest.getAbsolutePath(), fileName, new ArrayList<Long>(), contentType);
+        long contentId = dbHandler.addFile(contentName, mDest.getAbsolutePath(), contentDescription, contentType);
 
-        // if content is of type text then copy its text in inmemory textContentHashMap structure
+        dbHandler.addSmartContentInMemory(sC);
+
+        // update the content id and address of content in the sC object
+        sC.setContentID(contentId);
+        sC.getContentUnit().setContentAddress(mDest.getAbsolutePath());
+
+        // if content is of type text then copy its text in in-memory textContentHashMap structure
         String contentText = new String();
         HashMap<Long, TextContent> textContentHashMap = dbHandler.getTextContent();
         if (sC.getContentUnit().getContentType() == ContentTypeEnum.Note
                 || sC.getContentUnit().getContentType() == ContentTypeEnum.Location) {
-            File file = new File(sC.getContentUnit().getAddress());
+            File file = new File(sC.getContentUnit().getContentAddress());
             Scanner scanner = null;
             try {
                 scanner = new Scanner(new FileInputStream(file));

@@ -19,7 +19,7 @@
         android:minLines="1"
         android:padding="3dp"
         android:textColor="@android:color/white"
-        android:textSize="15sp" />
+        android:textSize="14sp" />
 
     <View
         android:id="@+id/filler_view"
