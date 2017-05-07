@@ -1,13 +1,18 @@
 package com.example.vikalpsajwan.smartexplorer.UX;
 
+import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
+import android.support.v7.widget.Toolbar;
 import android.view.ContextMenu;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.MimeTypeMap;
@@ -26,17 +31,19 @@ import java.util.ArrayList;
 
 public class FilesListActivity extends AppCompatActivity {
 
-    public static final int SHOW_ALL = 1;
-    public static final int SEARCH = 2;
+    public static final int SEARCH = 1;
+    public static final int SHOW_ALL = 2;
 
     public static final String EXTRA_SEARCH_MODE = "EXTRA_SEARCH_MODE";
-    public static final String EXTRA_SEARCH_STRING = "EXTRA_SEARCH_STRING";
 
     ListView listView;
     private DatabaseHandler dbHandler;
 //    private Cursor resultCursor;
-    private FileListAdapter fla;
+//    private FileListAdapter fla;
     private int mode;
+
+    // Toolbar
+    Toolbar myToolbar;
 
     ArrayList<SmartContent> sCData;
     FileListArrayAdapter flaa;
@@ -115,6 +122,58 @@ public class FilesListActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Initialize the contents of the Activity's standard options menu.  You
+     * should place your menu items in to <var>menu</var>.
+     * <p>
+     * <p>This is only called once, the first time the options menu is
+     * displayed.  To update the menu every time it is displayed, see
+     * {@link #onPrepareOptionsMenu}.
+     * <p>
+     * <p>The default implementation populates the menu with standard system
+     * menu items.  These are placed in the {@link Menu#CATEGORY_SYSTEM} group so that
+     * they will be correctly ordered with application-defined menu items.
+     * Deriving classes should always call through to the base implementation.
+     * <p>
+     * <p>You can safely hold on to <var>menu</var> (and any items created
+     * from it), making modifications to it as desired, until the next
+     * time onCreateOptionsMenu() is called.
+     * <p>
+     * <p>When you add items to the menu, you can implement the Activity's
+     * {@link #onOptionsItemSelected} method to handle them there.
+     *
+     * @param menu The options menu in which you place your items.
+     * @return You must return true for the menu to be displayed;
+     * if you return false it will not be shown.
+     * @see #onPrepareOptionsMenu
+     * @see #onOptionsItemSelected
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.activity_files_list_menu, menu);
+
+
+        // Associate searchable configuration with the SearchView
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+
+        SearchView searchView = (SearchView) menu.findItem(R.id.action_search)
+                .getActionView();
+        searchView.setSearchableInfo(searchManager
+                .getSearchableInfo(getComponentName()));
+
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        String searchString = intent.getStringExtra(SearchManager.QUERY);
+        sCData = dbHandler.searchContentByString(searchString);
+        setupInterface();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -126,50 +185,19 @@ public class FilesListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_files_listview);
 
 
+        //setting up the toolbar
+        myToolbar = (Toolbar) findViewById(R.id.main_toolbar);
+        setSupportActionBar(myToolbar);
+
+
         if( mode == SHOW_ALL){
             sCData = dbHandler.getSmartContentData();
         } else{     // SEARCH mode
-            String searchString = intent.getStringExtra(EXTRA_SEARCH_STRING);
+            String searchString = intent.getStringExtra(SearchManager.QUERY);
             sCData = dbHandler.searchContentByString(searchString);
         }
 
-        // Using SmartContent data and ArrayListAdapter
-        listView = (ListView) findViewById(R.id.files_listview);
-
-        // custom ArrayList adapter
-        flaa = new FileListArrayAdapter(this, R.layout.smart_content_list_item, sCData );
-        listView.setAdapter(flaa);
-        registerForContextMenu(listView);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent;
-
-                ContentTypeEnum contentType = sCData.get(position).getContentUnit().getContentType();
-
-                if(contentType == ContentTypeEnum.Note || contentType == ContentTypeEnum.Location){
-                    intent = new Intent(getApplicationContext(), ViewNoteActivity.class);
-                    intent.putExtra(ViewNoteActivity.EXTRA_CONTENT_ID, sCData.get(position).getContentID());
-                }
-                else{
-                    File file = new File(sCData.get(position).getContentUnit().getContentAddress());
-                    Uri uri = Uri.fromFile(file);
-                    intent = new Intent(Intent.ACTION_VIEW, uri);
-                    String  extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
-                    String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
-                    intent.setDataAndType(uri, mimeType);
-                }
-
-
-                try{
-                    startActivity(intent);
-                }
-                catch (ActivityNotFoundException e){
-                    Toast.makeText(getApplicationContext(),"No suitable app found!!",Toast.LENGTH_LONG).show();
-                }
-            }
-        });
-
+        setupInterface();
 
 
 
@@ -206,6 +234,46 @@ public class FilesListActivity extends AppCompatActivity {
 //                }
 //            }
 //        });
+
+    }
+
+    public void setupInterface(){
+        // Using SmartContent data and ArrayListAdapter
+        listView = (ListView) findViewById(R.id.files_listview);
+
+        // custom ArrayList adapter
+        flaa = new FileListArrayAdapter(this, R.layout.smart_content_list_item, sCData );
+        listView.setAdapter(flaa);
+        registerForContextMenu(listView);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent;
+
+                ContentTypeEnum contentType = sCData.get(position).getContentUnit().getContentType();
+
+                if(contentType == ContentTypeEnum.Note || contentType == ContentTypeEnum.Location){
+                    intent = new Intent(getApplicationContext(), ViewNoteActivity.class);
+                    intent.putExtra(ViewNoteActivity.EXTRA_CONTENT_ID, sCData.get(position).getContentID());
+                }
+                else{
+                    File file = new File(sCData.get(position).getContentUnit().getContentAddress());
+                    Uri uri = Uri.fromFile(file);
+                    intent = new Intent(Intent.ACTION_VIEW, uri);
+                    String  extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
+                    String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
+                    intent.setDataAndType(uri, mimeType);
+                }
+
+
+                try{
+                    startActivity(intent);
+                }
+                catch (ActivityNotFoundException e){
+                    Toast.makeText(getApplicationContext(),"No suitable app found!!",Toast.LENGTH_LONG).show();
+                }
+            }
+        });
 
     }
 

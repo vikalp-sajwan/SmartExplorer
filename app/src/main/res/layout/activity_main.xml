@@ -32,17 +32,6 @@
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin">
 
-        <EditText
-            android:id="@+id/editText"
-            style="@style/Widget.AppCompat.EditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:drawableLeft="@android:drawable/ic_menu_search"
-            android:hint="Search"
-            android:inputType="text"
-            android:maxLines="1"
-            android:singleLine="true" />
-
 
         <!--    Button for third party database viewing feature    -->
         <Button
@@ -57,7 +46,7 @@
             android:id="@+id/recentContentListview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="5dp"
             android:background="@android:color/background_light"
             android:elevation="3dp" />
 
@@ -73,13 +62,4 @@
     </LinearLayout>
 
 
-    <Button
-        android:id="@+id/button"
-        style="@style/Widget.AppCompat.Button.Colored"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:longClickable="true"
-        android:onClick="search"
-        android:text="Search"
-        tools:longClickable="true" />
 </LinearLayout>

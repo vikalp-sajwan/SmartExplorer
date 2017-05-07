@@ -1,12 +1,16 @@
 package com.example.vikalpsajwan.smartexplorer.UX;
 
+import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.os.Bundle;
 import android.view.ContextMenu;
@@ -39,11 +43,11 @@ import static android.widget.AdapterView.*;
 public class MainActivity extends AppCompatActivity {
 
     // GUI elements layout 1
-    EditText searchEditText;
+    //EditText searchEditText;
     //CheckBox checkBoxName;
     //CheckBox checkBoxTag;
     //AutoCompleteTextView actvTag;
-    Button searchButton;
+    //Button searchButton;
     ListView recentContentListView;
 
     private DatabaseHandler dbHandler;
@@ -72,11 +76,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // binding GUI elements in Layout 1
-        searchEditText = (EditText) findViewById(R.id.editText);
-        searchEditText.clearFocus();
+//        searchEditText = (EditText) findViewById(R.id.editText);
+//        searchEditText.clearFocus();
         //checkBoxName = (CheckBox) findViewById(R.id.checkBoxName);
         //checkBoxTag = (CheckBox) findViewById(R.id.checkBoxTag);
-        searchButton = (Button) findViewById(R.id.button);
+        //searchButton = (Button) findViewById(R.id.button);
         //actvTag = (AutoCompleteTextView) findViewById(actvTag);
         recentContentListView = (ListView) findViewById(R.id.recentContentListview);
 
@@ -95,13 +99,13 @@ public class MainActivity extends AppCompatActivity {
         dbHandler.populateDemoTV(demoTV);
 
         // %%%%%%%%%%%%%%%%%%%%%%%%$$$$$$$$$$############
-        searchButton.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                startDB(null);
-                return true;
-            }
-        });
+//        searchButton.setOnLongClickListener(new View.OnLongClickListener() {
+//            @Override
+//            public boolean onLongClick(View v) {
+//                startDB(null);
+//                return true;
+//            }
+//        });
 
 
         // %%%%%%%%%%%%%%%%%%%%$$$$$$$$$$$$$#############
@@ -242,63 +246,78 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_main_menu, menu);
+
+        // Associate searchable configuration with the SearchView
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+
+        SearchView searchView = (SearchView) menu.findItem(R.id.action_search)
+                .getActionView();
+        searchView.setSearchableInfo(searchManager
+                .getSearchableInfo(new ComponentName(this, FilesListActivity.class)));
+
+
         return super.onCreateOptionsMenu(menu);
     }
 
-    /**
-     * called on clicking Search searchButton in initial Layout
-     *
-     * @param view
-     */
-    public void search(View view) {
-//        if (checkBoxTag.isChecked() || checkBoxName.isChecked()) {
-//
-        String searchString = searchEditText.getText().toString();
-//            String tag = actvTag.getText().toString();
-//
-//            if (checkBoxName.isChecked()) {
-        if (searchString.trim().isEmpty()) {
-            Toast.makeText(getApplicationContext(), "please enter valid search string", Toast.LENGTH_SHORT).show();
-            searchEditText.setText("");
-            return;
-        }
-        searchByString(searchString);
-//            }
-//
-//            if (checkBoxTag.isChecked()) {
-//                if (tag.trim().isEmpty()) {
-//                    Toast.makeText(getApplicationContext(), "please enter valid tag name", Toast.LENGTH_SHORT).show();
-//                    return;
-//                }
-//            }
-//
-//            if (!checkBoxTag.isChecked()) {
-//                searchByName(searchString);
-//            } else if (!checkBoxName.isChecked()) {
-//                // case for searching by tag
-//                searchByTag(tag);
-//            } else {
-//                // case for searching with both name and tag
-//                searchByNameAndTag(searchString, tag);
-//            }
-//
-//
-//            Toast t = Toast.makeText(getApplicationContext(), "OK", Toast.LENGTH_SHORT);
-//            t.show();
-//
-//        } else {
-//            Toast t = Toast.makeText(getApplicationContext(), "please select at least one of checkboxes", Toast.LENGTH_SHORT);
-//            t.show();
+//    /**
+//     * called on clicking searchButton in initial Layout
+//     *
+//     * @param view
+//     */
+//    public void search(View view) {
+////        if (checkBoxTag.isChecked() || checkBoxName.isChecked()) {
+////
+//        String searchString = searchEditText.getText().toString();
+////            String tag = actvTag.getText().toString();
+////
+////            if (checkBoxName.isChecked()) {
+//        if (searchString.trim().isEmpty()) {
+//            Toast.makeText(getApplicationContext(), "please enter valid search string", Toast.LENGTH_SHORT).show();
+//            searchEditText.setText("");
 //        }
+//        else{
+//            // create an instance of background Async task to perform search operation
+//            SearchUtility searchUtil = new SearchUtility(getApplicationContext());
+//            // start background search
+//            searchUtil.execute(searchString);
+//        }
+//        searchByString(searchString);
+////            }
+////
+////            if (checkBoxTag.isChecked()) {
+////                if (tag.trim().isEmpty()) {
+////                    Toast.makeText(getApplicationContext(), "please enter valid tag name", Toast.LENGTH_SHORT).show();
+////                    return;
+////                }
+////            }
+////
+////            if (!checkBoxTag.isChecked()) {
+////                searchByName(searchString);
+////            } else if (!checkBoxName.isChecked()) {
+////                // case for searching by tag
+////                searchByTag(tag);
+////            } else {
+////                // case for searching with both name and tag
+////                searchByNameAndTag(searchString, tag);
+////            }
+////
+////
+////            Toast t = Toast.makeText(getApplicationContext(), "OK", Toast.LENGTH_SHORT);
+////            t.show();
+////
+////        } else {
+////            Toast t = Toast.makeText(getApplicationContext(), "please select at least one of checkboxes", Toast.LENGTH_SHORT);
+////            t.show();
+////        }
+//
+//    }
 
-    }
-
-    private void searchByString(String searchString) {
-        Intent intent = new Intent(this, FilesListActivity.class);
-        intent.putExtra(FilesListActivity.EXTRA_SEARCH_MODE, FilesListActivity.SEARCH);
-        intent.putExtra(FilesListActivity.EXTRA_SEARCH_STRING, searchString);
-        startActivity(intent);
-    }
+//    private void searchByString(String searchString) {
+//        Intent intent = new Intent(this, FilesListActivity.class);
+//        intent.putExtra(FilesListActivity.EXTRA_SEARCH_MODE, FilesListActivity.SEARCH);
+//        intent.putExtra(FilesListActivity.EXTRA_SEARCH_STRING, searchString);
+//        startActivity(intent);
+//    }
 
 
     /**
