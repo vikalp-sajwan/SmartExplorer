@@ -259,6 +259,8 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
+
+
 //    /**
 //     * called on clicking searchButton in initial Layout
 //     *

@@ -168,7 +168,8 @@ public class FilesListActivity extends AppCompatActivity {
     @Override
 
     protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
+        setIntent(intent);
+//        super.onNewIntent(intent);
         String searchString = intent.getStringExtra(SearchManager.QUERY);
         sCData = dbHandler.searchContentByString(searchString);
         setupInterface();
