@@ -77,7 +77,7 @@ public class AddContentActivity extends AppCompatActivity {
     Button addContentButton;
     LinearLayout tagContainer;
     Spinner contentCategorySpinner;
-    MultiAutoCompleteTextView descriptionMACTV;
+    SpaceMultiAutoCompleteTextView descriptionMACTV;
     private DatabaseHandler dbHandler;
     private CopyFileUtility copyUtil;
 
@@ -115,7 +115,7 @@ public class AddContentActivity extends AppCompatActivity {
         addContentButton = (Button) findViewById(R.id.addFileButton);
 //        addTagButton = (Button) findViewById(R.id.addTagButton);
         contentCategorySpinner = (Spinner) findViewById(R.id.contentCategorySpinner);
-        descriptionMACTV = (MultiAutoCompleteTextView) findViewById(R.id.description_mactv);
+        descriptionMACTV = (SpaceMultiAutoCompleteTextView) findViewById(R.id.description_mactv);
 
         removedTags = new HashMap<String, Boolean>();
 
@@ -126,7 +126,6 @@ public class AddContentActivity extends AppCompatActivity {
                 android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);
         descriptionMACTV.setAdapter(adapter);
         descriptionMACTV.setThreshold(2);
-        descriptionMACTV.setTokenizer(new SpaceTokenizer());
 
         descriptionMACTV.addTextChangedListener(new TextWatcher() {
 

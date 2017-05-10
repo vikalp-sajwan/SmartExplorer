@@ -59,7 +59,7 @@
                 android:layout_height="2dp"
                 android:background="@color/colorPrimaryDark" />
 
-            <MultiAutoCompleteTextView
+            <com.example.vikalpsajwan.smartexplorer.UX.SpaceMultiAutoCompleteTextView
                 android:id="@+id/description_mactv"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

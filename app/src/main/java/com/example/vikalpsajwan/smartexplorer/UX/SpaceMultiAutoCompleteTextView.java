@@ -1,15 +1,40 @@
 package com.example.vikalpsajwan.smartexplorer.UX;
 
+import android.content.Context;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
+import android.util.AttributeSet;
 import android.widget.MultiAutoCompleteTextView;
 
 /**
- * Created by Vikalp on 11/04/2017.
+ * Created by Vikalp on 10/05/2017.
  */
 
-public class SpaceTokenizer implements MultiAutoCompleteTextView.Tokenizer {
+public class SpaceMultiAutoCompleteTextView extends android.support.v7.widget.AppCompatMultiAutoCompleteTextView {
+
+
+//    public SpaceMultiAutoCompleteTextView(Context context) {
+//        super(context);
+//        setTokenizer(new SpaceTokenizer());
+//    }
+
+    public SpaceMultiAutoCompleteTextView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        setTokenizer(new SpaceTokenizer());
+    }
+
+//    public SpaceMultiAutoCompleteTextView(Context context, AttributeSet attrs, int defStyleAttr) {
+//        super(context, attrs, defStyleAttr);
+//        setTokenizer(new SpaceTokenizer());
+//    }
+
+
+
+}
+
+
+class SpaceTokenizer implements MultiAutoCompleteTextView.Tokenizer {
     /**
      * Returns the start of the token that ends at offset
      * <code>cursor</code> within <code>text</code>.
@@ -59,24 +84,24 @@ public class SpaceTokenizer implements MultiAutoCompleteTextView.Tokenizer {
      */
     @Override
     public CharSequence terminateToken(CharSequence text) {
-            int i = text.length();
+        int i = text.length();
 
-            while (i > 0 && Character.isWhitespace(text.charAt(i-1))) {
-                i--;
-            }
+        while (i > 0 && Character.isWhitespace(text.charAt(i-1))) {
+            i--;
+        }
 
-            if (i > 0 && Character.isWhitespace(text.charAt(i-1))) {
-                return text;
+        if (i > 0 && Character.isWhitespace(text.charAt(i-1))) {
+            return text;
+        } else {
+            if (text instanceof Spanned) {
+                SpannableString sp = new SpannableString(text + " ");
+                TextUtils.copySpansFrom((Spanned) text, 0, text.length(),
+                        Object.class, sp, 0);
+                return sp;
             } else {
-                if (text instanceof Spanned) {
-                    SpannableString sp = new SpannableString(text + " ");
-                    TextUtils.copySpansFrom((Spanned) text, 0, text.length(),
-                            Object.class, sp, 0);
-                    return sp;
-                } else {
-                    return text + " ";
-                }
+                return text + " ";
             }
+        }
     }
 }
 
