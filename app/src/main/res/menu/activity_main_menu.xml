@@ -1,24 +1,23 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-    Menu layout file for the main activity toolbar
-    currently it contains just one entry(icon) to show all the important files
-
--->
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".UX.MainActivity">
 
-    <!-- Search Widget -->
-    <item android:id="@+id/action_search"
-        android:icon="@drawable/ic_search"
+    <item
+        android:id="@+id/action_search"
         android:title="Search"
-        app:showAsAction="collapseActionView|always"
-        app:actionViewClass="android.support.v7.widget.SearchView"/>
+        android:orderInCategory="100"
+        android:icon="@drawable/ic_search"
+        app:showAsAction="always"
+        />
 
     <item
         android:id="@+id/camera_capture"
         android:icon="@drawable/ic_capture_image"
         android:onClick="captureImage"
+        android:orderInCategory="200"
         android:title="Capture"
         app:showAsAction="ifRoom">
 
@@ -29,5 +28,12 @@
         android:icon="@drawable/ic_list_all"
         android:onClick="showAllFilesActivity"
         android:title="Show all files"
+        android:orderInCategory="300"
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="400"
+        android:title="Settings"
+        app:showAsAction="never" />
+
 </menu>

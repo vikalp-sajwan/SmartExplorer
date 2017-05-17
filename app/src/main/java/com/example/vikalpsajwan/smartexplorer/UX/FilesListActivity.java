@@ -7,17 +7,24 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.view.ContextMenu;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.vikalpsajwan.smartexplorer.R;
@@ -42,13 +49,112 @@ public class FilesListActivity extends AppCompatActivity {
 //    private FileListAdapter fla;
     private int mode;
 
-    // Toolbar
-    Toolbar myToolbar;
+    private MenuItem mSearchAction;
+    private boolean isSearchOpened = false;
+    private EditText editSearch;
 
     ArrayList<SmartContent> sCData;
     FileListArrayAdapter flaa;
 
+//    Toolbar
+    private Toolbar mToolbar;
 
+    /**
+     * Initialize the contents of the Activity's standard options menu.  You
+     * should place your menu items in to <var>menu</var>.
+     * <p>
+     * <p>This is only called once, the first time the options menu is
+     * displayed.  To update the menu every time it is displayed, see
+     * {@link #onPrepareOptionsMenu}.
+     * <p>
+     * <p>The default implementation populates the menu with standard system
+     * menu items.  These are placed in the {@link Menu#CATEGORY_SYSTEM} group so that
+     * they will be correctly ordered with application-defined menu items.
+     * Deriving classes should always call through to the base implementation.
+     * <p>
+     * <p>You can safely hold on to <var>menu</var> (and any items created
+     * from it), making modifications to it as desired, until the next
+     * time onCreateOptionsMenu() is called.
+     * <p>
+     * <p>When you add items to the menu, you can implement the Activity's
+     * {@link #onOptionsItemSelected} method to handle them there.
+     *
+     * @param menu The options menu in which you place your items.
+     * @return You must return true for the menu to be displayed;
+     * if you return false it will not be shown.
+     * @see #onPrepareOptionsMenu
+     * @see #onOptionsItemSelected
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.activity_files_list_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if(id == R.id.action_search){
+            handleMenuSearch();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    protected void handleMenuSearch() {
+        ActionBar action = getSupportActionBar(); //get the actionbar
+
+        if (isSearchOpened) { //test if the search is open
+
+            action.setDisplayShowCustomEnabled(false); //disable a custom view inside the actionbar
+            action.setDisplayShowTitleEnabled(true); //show the title in the action bar
+
+            //hides the keyboard
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(editSearch.getWindowToken(), 0);
+
+            //add the search icon in the action bar
+            mSearchAction.setIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_search));
+
+            isSearchOpened = false;
+        } else { //open the search entry
+
+            action.setDisplayShowCustomEnabled(true); //enable it to display a
+            // custom view in the action bar.
+            action.setCustomView(R.layout.search_bar);//add the custom view
+            action.setDisplayShowTitleEnabled(false); //hide the title
+
+            editSearch = (EditText) action.getCustomView().findViewById(R.id.edit_search); //the text editor
+
+            //this is a listener to do a search when the user clicks on search button
+            editSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                @Override
+                public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                    if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                        Toast.makeText(getApplicationContext(), "search done", Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    return false;
+                }
+            });
+
+
+            editSearch.requestFocus();
+
+            //open the keyboard focused in the edtSearch
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(editSearch, InputMethodManager.SHOW_IMPLICIT);
+
+
+            //add the close icon
+            mSearchAction.setIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_close_search));
+
+            isSearchOpened = true;
+        }
+    }
     /**
      * This hook is called whenever an item in a context menu is selected. The
      * default implementation simply returns false to have the normal processing
@@ -122,48 +228,6 @@ public class FilesListActivity extends AppCompatActivity {
 
     }
 
-    /**
-     * Initialize the contents of the Activity's standard options menu.  You
-     * should place your menu items in to <var>menu</var>.
-     * <p>
-     * <p>This is only called once, the first time the options menu is
-     * displayed.  To update the menu every time it is displayed, see
-     * {@link #onPrepareOptionsMenu}.
-     * <p>
-     * <p>The default implementation populates the menu with standard system
-     * menu items.  These are placed in the {@link Menu#CATEGORY_SYSTEM} group so that
-     * they will be correctly ordered with application-defined menu items.
-     * Deriving classes should always call through to the base implementation.
-     * <p>
-     * <p>You can safely hold on to <var>menu</var> (and any items created
-     * from it), making modifications to it as desired, until the next
-     * time onCreateOptionsMenu() is called.
-     * <p>
-     * <p>When you add items to the menu, you can implement the Activity's
-     * {@link #onOptionsItemSelected} method to handle them there.
-     *
-     * @param menu The options menu in which you place your items.
-     * @return You must return true for the menu to be displayed;
-     * if you return false it will not be shown.
-     * @see #onPrepareOptionsMenu
-     * @see #onOptionsItemSelected
-     */
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_files_list_menu, menu);
-
-
-        // Associate searchable configuration with the SearchView
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-
-        SearchView searchView = (SearchView) menu.findItem(R.id.action_search)
-                .getActionView();
-        searchView.setSearchableInfo(searchManager
-                .getSearchableInfo(getComponentName()));
-
-
-        return super.onCreateOptionsMenu(menu);
-    }
 
     @Override
 
@@ -173,6 +237,29 @@ public class FilesListActivity extends AppCompatActivity {
         String searchString = intent.getStringExtra(SearchManager.QUERY);
         sCData = dbHandler.searchContentByString(searchString);
         setupInterface();
+    }
+
+
+    /**
+     * Prepare the Screen's standard options menu to be displayed.  This is
+     * called right before the menu is shown, every time it is shown.  You can
+     * use this method to efficiently enable/disable items or otherwise
+     * dynamically modify the contents.
+     * <p>
+     * <p>The default implementation updates the system menu items based on the
+     * activity's state.  Deriving classes should always call through to the
+     * base class implementation.
+     *
+     * @param menu The options menu as last shown or first initialized by
+     *             onCreateOptionsMenu().
+     * @return You must return true for the menu to be displayed;
+     * if you return false it will not be shown.
+     * @see #onCreateOptionsMenu
+     */
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        mSearchAction = menu.findItem(R.id.action_search);
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
@@ -187,8 +274,8 @@ public class FilesListActivity extends AppCompatActivity {
 
 
         //setting up the toolbar
-        myToolbar = (Toolbar) findViewById(R.id.main_toolbar);
-        setSupportActionBar(myToolbar);
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
 
 
         if( mode == SHOW_ALL){
@@ -236,6 +323,15 @@ public class FilesListActivity extends AppCompatActivity {
 //            }
 //        });
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (isSearchOpened) {
+            handleMenuSearch();
+            return;
+        }
+        super.onBackPressed();
     }
 
     public void setupInterface(){

@@ -1,41 +1,45 @@
 package com.example.vikalpsajwan.smartexplorer.UX;
 
-import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.os.Bundle;
 import android.view.ContextMenu;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
+import com.example.vikalpsajwan.smartexplorer.R;
 import com.example.vikalpsajwan.smartexplorer.models.AndroidDatabaseManager;
 import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
-import com.example.vikalpsajwan.smartexplorer.R;
 import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
 
 import java.io.File;
 import java.util.ArrayList;
 
-import static android.widget.AdapterView.*;
+import static android.widget.AdapterView.AdapterContextMenuInfo;
+import static android.widget.AdapterView.OnItemClickListener;
+
 
 //import static com.example.vikalpsajwan.smartexplorer.R.id.actvTag;
 
@@ -49,16 +53,144 @@ public class MainActivity extends AppCompatActivity {
     //AutoCompleteTextView actvTag;
     //Button searchButton;
     ListView recentContentListView;
-
-    private DatabaseHandler dbHandler;
-
-    // Toolbar
-    Toolbar myToolbar;
-
     // data and adapter for recent content list
     ArrayList<SmartContent> sCData;
     FileListArrayAdapter flaa;
 
+    private MenuItem mSearchAction;
+    private boolean isSearchOpened = false;
+    private EditText editSearch;
+
+    private DatabaseHandler dbHandler;
+
+    /**
+     * Prepare the Screen's standard options menu to be displayed.  This is
+     * called right before the menu is shown, every time it is shown.  You can
+     * use this method to efficiently enable/disable items or otherwise
+     * dynamically modify the contents.
+     * <p>
+     * <p>The default implementation updates the system menu items based on the
+     * activity's state.  Deriving classes should always call through to the
+     * base class implementation.
+     *
+     * @param menu The options menu as last shown or first initialized by
+     *             onCreateOptionsMenu().
+     * @return You must return true for the menu to be displayed;
+     * if you return false it will not be shown.
+     * @see #onCreateOptionsMenu
+     */
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        mSearchAction = menu.findItem(R.id.action_search);
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+//     Toolbar
+    private Toolbar mToolbar;
+
+    /**
+     * Initialize the contents of the Activity's standard options menu.  You
+     * should place your menu items in to <var>menu</var>.
+     * <p>
+     * <p>This is only called once, the first time the options menu is
+     * displayed.  To update the menu every time it is displayed, see
+     * {@link #onPrepareOptionsMenu}.
+     * <p>
+     * <p>The default implementation populates the menu with standard system
+     * menu items.  These are placed in the {@link Menu#CATEGORY_SYSTEM} group so that
+     * they will be correctly ordered with application-defined menu items.
+     * Deriving classes should always call through to the base implementation.
+     * <p>
+     * <p>You can safely hold on to <var>menu</var> (and any items created
+     * from it), making modifications to it as desired, until the next
+     * time onCreateOptionsMenu() is called.
+     * <p>
+     * <p>When you add items to the menu, you can implement the Activity's
+     * {@link #onOptionsItemSelected} method to handle them there.
+     *
+     * @param menu The options menu in which you place your items.
+     * @return You must return true for the menu to be displayed;
+     * if you return false it will not be shown.
+     * @see #onPrepareOptionsMenu
+     * @see #onOptionsItemSelected
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.activity_main_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        switch (id) {
+            case R.id.camera_capture:
+                return true;
+            case R.id.action_settings:
+                return true;
+            case R.id.show_all:
+                return true;
+            case R.id.action_search:
+                handleMenuSearch();
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    protected void handleMenuSearch() {
+        ActionBar action = getSupportActionBar(); //get the actionbar
+
+        if (isSearchOpened) { //test if the search is open
+
+            action.setDisplayShowCustomEnabled(false); //disable a custom view inside the actionbar
+            action.setDisplayShowTitleEnabled(true); //show the title in the action bar
+
+            //hides the keyboard
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(editSearch.getWindowToken(), 0);
+
+            //add the search icon in the action bar
+            mSearchAction.setIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_search));
+
+            isSearchOpened = false;
+        } else { //open the search entry
+
+            action.setDisplayShowCustomEnabled(true); //enable it to display a
+            // custom view in the action bar.
+            action.setCustomView(R.layout.search_bar);//add the custom view
+            action.setDisplayShowTitleEnabled(false); //hide the title
+
+            editSearch = (EditText) action.getCustomView().findViewById(R.id.edit_search); //the text editor
+
+            //this is a listener to do a search when the user clicks on search button
+            editSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                @Override
+                public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                    if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                        Toast.makeText(getApplicationContext(), "search done", Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    return false;
+                }
+            });
+
+
+            editSearch.requestFocus();
+
+            //open the keyboard focused in the edtSearch
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(editSearch, InputMethodManager.SHOW_IMPLICIT);
+
+
+            //add the close icon
+            mSearchAction.setIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_close_search));
+
+            isSearchOpened = true;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,8 +199,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //setting up the toolbar
-        myToolbar = (Toolbar) findViewById(R.id.main_toolbar);
-        setSupportActionBar(myToolbar);
+//        myToolbar = (Toolbar) findViewById(R.id.main_toolbar);
+//        setSupportActionBar(myToolbar);
+
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
 
         // getting runtime permission for reading storage on marshmallow and above
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -95,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
         populateRecentContent();
 
         // demonstration purpose
-        TextView demoTV = (TextView)findViewById(R.id.textView);
+        TextView demoTV = (TextView) findViewById(R.id.textView);
         dbHandler.populateDemoTV(demoTV);
 
         // %%%%%%%%%%%%%%%%%%%%%%%%$$$$$$$$$$############
@@ -110,6 +245,15 @@ public class MainActivity extends AppCompatActivity {
 
         // %%%%%%%%%%%%%%%%%%%%$$$$$$$$$$$$$#############
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (isSearchOpened) {
+            handleMenuSearch();
+            return;
+        }
+        super.onBackPressed();
     }
 
     /**
@@ -132,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onContextItemSelected(final MenuItem item) {
         super.onContextItemSelected(item);
-        if(item.getTitle() == "Delete") {
+        if (item.getTitle() == "Delete") {
             final AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
             alertDialog.setTitle("DELETE following content. Continue?");
             alertDialog.setMessage("Are you sure you want to DELETE this content?");
@@ -158,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         }
-        return  true;
+        return true;
     }
 
     /**
@@ -181,16 +325,16 @@ public class MainActivity extends AppCompatActivity {
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
 
-        menu.add(0, v.getId(), 0,  "Delete");
+        menu.add(0, v.getId(), 0, "Delete");
 
     }
 
     /**
      * method to load and populate the recent 7 contents in a list
      */
-    public void populateRecentContent(){
+    public void populateRecentContent() {
         sCData = dbHandler.getRecentContentData();
-        flaa = new FileListArrayAdapter(this, R.layout.smart_content_list_item, sCData );
+        flaa = new FileListArrayAdapter(this, R.layout.smart_content_list_item, sCData);
         recentContentListView.setAdapter(flaa);
 
         registerForContextMenu(recentContentListView);
@@ -203,25 +347,23 @@ public class MainActivity extends AppCompatActivity {
 
                 ContentTypeEnum contentType = sCData.get(position).getContentUnit().getContentType();
 
-                if(contentType == ContentTypeEnum.Note || contentType == ContentTypeEnum.Location){
+                if (contentType == ContentTypeEnum.Note || contentType == ContentTypeEnum.Location) {
                     intent = new Intent(getApplicationContext(), ViewNoteActivity.class);
                     intent.putExtra(ViewNoteActivity.EXTRA_CONTENT_ID, sCData.get(position).getContentID());
-                }
-                else{
+                } else {
                     File file = new File(sCData.get(position).getContentUnit().getContentAddress());
                     Uri uri = Uri.fromFile(file);
                     intent = new Intent(Intent.ACTION_VIEW, uri);
-                    String  extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
+                    String extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
                     String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
                     intent.setDataAndType(uri, mimeType);
                 }
 
 
-                try{
+                try {
                     startActivity(intent);
-                }
-                catch (ActivityNotFoundException e){
-                    Toast.makeText(getApplicationContext(),"No suitable app found!!",Toast.LENGTH_LONG).show();
+                } catch (ActivityNotFoundException e) {
+                    Toast.makeText(getApplicationContext(), "No suitable app found!!", Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -230,35 +372,34 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        TextView demoTV = (TextView)findViewById(R.id.textView);
+        TextView demoTV = (TextView) findViewById(R.id.textView);
         demoTV.setText(" ");
         dbHandler.populateDemoTV(demoTV);
         populateRecentContent();
 
     }
 
-    /**
-     * overridden method to inflate the Toolbar menu
-     *
-     * @param menu
-     * @return
-     */
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_main_menu, menu);
-
-        // Associate searchable configuration with the SearchView
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-
-        SearchView searchView = (SearchView) menu.findItem(R.id.action_search)
-                .getActionView();
-        searchView.setSearchableInfo(searchManager
-                .getSearchableInfo(new ComponentName(this, FilesListActivity.class)));
-
-
-        return super.onCreateOptionsMenu(menu);
-    }
-
+//    /**
+//     * overridden method to inflate the Toolbar menu
+//     *
+//     * @param menu
+//     * @return
+//     */
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.activity_main_menu, menu);
+//
+//        // Associate searchable configuration with the SearchView
+//        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+//
+//        SearchView searchView = (SearchView) menu.findItem(R.id.action_search)
+//                .getActionView();
+//        searchView.setSearchableInfo(searchManager
+//                .getSearchableInfo(new ComponentName(this, FilesListActivity.class)));
+//
+//
+//        return super.onCreateOptionsMenu(menu);
+//    }
 
 
 //    /**
@@ -359,15 +500,17 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * called on clicking show database (THIRD PARTY FEATURE) button in the main activity
+     *
      * @param view
      */
-    public void startDB(View view){
+    public void startDB(View view) {
         Intent intent = new Intent(this, AndroidDatabaseManager.class);
         startActivity(intent);
     }
 
     /**
      * called on clicking the capture by camera button in the menu toolbar
+     *
      * @param item
      */
     public void captureImage(MenuItem item) {

@@ -68,7 +68,7 @@
                 android:layout_marginRight="5dp"
                 android:layout_marginTop="5dp"
                 android:layout_weight="1"
-                android:hint="Description"
+                android:hint="@string/description"
                 android:inputType="text"
                 android:lines="1"
                 android:maxLines="1"
@@ -86,16 +86,17 @@
                 android:layout_weight="1"
                 android:animateLayoutChanges="true"
                 android:orientation="vertical"
-                android:padding="8dp"></LinearLayout>
+                android:padding="8dp" />
         </LinearLayout>
     </ScrollView>
 
     <Button
         android:id="@+id/addFileButton"
-        style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="match_parent"
-
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:textColor="@android:color/white"
         android:layout_height="wrap_content"
+        android:backgroundTint="@color/colorPrimary"
         android:onClick="addContentCheck"
-        android:text="Add Content" />
+        android:text="@string/add_content" />
 </LinearLayout>

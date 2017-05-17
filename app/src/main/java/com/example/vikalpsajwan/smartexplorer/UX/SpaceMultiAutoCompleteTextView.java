@@ -5,7 +5,6 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.widget.MultiAutoCompleteTextView;
 
 /**
  * Created by Vikalp on 10/05/2017.
@@ -34,7 +33,7 @@ public class SpaceMultiAutoCompleteTextView extends android.support.v7.widget.Ap
 }
 
 
-class SpaceTokenizer implements MultiAutoCompleteTextView.Tokenizer {
+class SpaceTokenizer implements android.support.v7.widget.AppCompatMultiAutoCompleteTextView.Tokenizer {
     /**
      * Returns the start of the token that ends at offset
      * <code>cursor</code> within <code>text</code>.

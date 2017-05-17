@@ -153,13 +153,13 @@ public class AddContentActivity extends AppCompatActivity {
                 if( len - previousDescriptionLength == 1){
                     // case of typed character
                     // just check the last character inputted, if its a space then extract last word
-                    int i;
+                    int secondLastIndex;
                     if(text.charAt(lastIndex) == ' '){
-                        i = lastIndex-1;
+                        secondLastIndex = lastIndex-1;
                         // for the case when space is pressed consecutively
                         // if last inputted character was space then don't do anything
-                        if(lastIndex>=0 && !Character.isWhitespace(text.charAt(lastIndex)))
-                        extractWordAndAddTag(text, i);
+                        if(lastIndex>0 && !Character.isWhitespace(text.charAt(secondLastIndex)))
+                            extractWordAndAddTag(text, secondLastIndex);
                     }
                 }else{
                     // case of pasted text -- extract all the words from string and add as tag
