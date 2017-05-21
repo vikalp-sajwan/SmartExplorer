@@ -1,6 +1,7 @@
 package com.example.vikalpsajwan.smartexplorer.UX;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -13,21 +14,26 @@ import android.util.AttributeSet;
 public class SpaceMultiAutoCompleteTextView extends android.support.v7.widget.AppCompatMultiAutoCompleteTextView {
 
 
-//    public SpaceMultiAutoCompleteTextView(Context context) {
-//        super(context);
-//        setTokenizer(new SpaceTokenizer());
-//    }
+    public SpaceMultiAutoCompleteTextView(Context context) {
+        super(context);
+        setTokenizer(new SpaceTokenizer());
+        setPadding(5, 10, 5, 10);
+
+    }
 
     public SpaceMultiAutoCompleteTextView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setTokenizer(new SpaceTokenizer());
+        setBackgroundColor(Color.WHITE);
+        setPadding(5, 10, 5, 10);
     }
 
-//    public SpaceMultiAutoCompleteTextView(Context context, AttributeSet attrs, int defStyleAttr) {
-//        super(context, attrs, defStyleAttr);
-//        setTokenizer(new SpaceTokenizer());
-//    }
-
+    public SpaceMultiAutoCompleteTextView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        setTokenizer(new SpaceTokenizer());
+        setBackgroundColor(Color.WHITE);
+        setPadding(5, 10, 5, 10);
+    }
 
 
 }
@@ -44,10 +50,10 @@ class SpaceTokenizer implements android.support.v7.widget.AppCompatMultiAutoComp
     @Override
     public int findTokenStart(CharSequence text, int cursor) {
         int i = cursor;
-        while(i > 0 && !Character.isWhitespace(text.charAt(i-1))){
+        while (i > 0 && !Character.isWhitespace(text.charAt(i - 1))) {
             i--;
         }
-        while(i < cursor && Character.isWhitespace(text.charAt(i))){
+        while (i < cursor && Character.isWhitespace(text.charAt(i))) {
             i++;
         }
         return i;
@@ -85,11 +91,11 @@ class SpaceTokenizer implements android.support.v7.widget.AppCompatMultiAutoComp
     public CharSequence terminateToken(CharSequence text) {
         int i = text.length();
 
-        while (i > 0 && Character.isWhitespace(text.charAt(i-1))) {
+        while (i > 0 && Character.isWhitespace(text.charAt(i - 1))) {
             i--;
         }
 
-        if (i > 0 && Character.isWhitespace(text.charAt(i-1))) {
+        if (i > 0 && Character.isWhitespace(text.charAt(i - 1))) {
             return text;
         } else {
             if (text instanceof Spanned) {

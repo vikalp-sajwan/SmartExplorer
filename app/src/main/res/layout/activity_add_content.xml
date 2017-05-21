@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorAccent"
+    android:background="@android:color/holo_purple"
     android:orientation="vertical"
     android:padding="8dp">
 
@@ -28,27 +28,37 @@
                     android:id="@+id/filenameEditText"
                     style="@style/Widget.AppCompat.EditText"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:layout_marginBottom="5dp"
                     android:layout_marginLeft="5dp"
                     android:layout_marginRight="5dp"
                     android:layout_marginTop="5dp"
                     android:layout_weight="7"
+                    android:background="@drawable/rounded_corner"
                     android:hint="@string/title"
                     android:inputType="text"
                     android:maxLines="1"
+                    android:padding="8dp"
                     android:textSize="16sp" />
 
-                <Spinner
-                    android:id="@+id/contentCategorySpinner"
-                    style="@style/Widget.AppCompat.Spinner"
+                <FrameLayout
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="42dp"
                     android:layout_marginBottom="5dp"
                     android:layout_marginLeft="0dp"
                     android:layout_marginRight="5dp"
                     android:layout_marginTop="5dp"
-                    android:layout_weight="5" />
+                    android:layout_weight="5"
+                    android:background="@drawable/rounded_corner">
+
+                    <Spinner
+                        android:id="@+id/contentCategorySpinner"
+                        android:layout_width="match_parent"
+
+                        android:layout_height="match_parent"
+                        android:spinnerMode="dialog" />
+                </FrameLayout>
+
 
             </LinearLayout>
 
@@ -59,20 +69,27 @@
                 android:layout_height="2dp"
                 android:background="@color/colorPrimaryDark" />
 
-            <com.example.vikalpsajwan.smartexplorer.UX.SpaceMultiAutoCompleteTextView
-                android:id="@+id/description_mactv"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="42dp"
                 android:layout_marginBottom="5dp"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp"
                 android:layout_marginTop="5dp"
-                android:layout_weight="1"
-                android:hint="@string/description"
-                android:inputType="text"
-                android:lines="1"
-                android:maxLines="1"
-                android:textSize="16sp" />
+                android:background="@drawable/rounded_corner">
+
+                <com.example.vikalpsajwan.smartexplorer.UX.SpaceMultiAutoCompleteTextView
+                    android:id="@+id/description_mactv"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+
+
+                    android:hint="@string/description"
+                    android:inputType="text"
+                    android:lines="1"
+                    android:maxLines="1"
+                    android:textSize="16sp" />
+            </FrameLayout>
 
             <View
                 android:layout_width="match_parent"
@@ -92,11 +109,11 @@
 
     <Button
         android:id="@+id/addFileButton"
-        android:layout_width="match_parent"
         style="@style/Widget.AppCompat.Button.Colored"
-        android:textColor="@android:color/white"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:backgroundTint="@color/colorPrimary"
         android:onClick="addContentCheck"
-        android:text="@string/add_content" />
+        android:text="@string/add_content"
+        android:textColor="@android:color/white" />
 </LinearLayout>

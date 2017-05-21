@@ -14,9 +14,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.MimeTypeMap;
@@ -59,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
 
     private MenuItem mSearchAction;
     private boolean isSearchOpened = false;
-    private EditText editSearch;
+    private SpaceMultiAutoCompleteTextView searchMACTV;
 
     private DatabaseHandler dbHandler;
 
@@ -150,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
 
             //hides the keyboard
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(editSearch.getWindowToken(), 0);
+            imm.hideSoftInputFromWindow(searchMACTV.getWindowToken(), 0);
 
             //add the search icon in the action bar
             mSearchAction.setIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_search));
@@ -160,29 +162,41 @@ public class MainActivity extends AppCompatActivity {
 
             action.setDisplayShowCustomEnabled(true); //enable it to display a
             // custom view in the action bar.
-            action.setCustomView(R.layout.search_bar);//add the custom view
+
+            LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            View view = inflater.inflate(R.layout.search_bar, null);
+            action.setCustomView(view, new ActionBar.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+            //action.setCustomView(R.layout.search_bar);//add the custom view
             action.setDisplayShowTitleEnabled(false); //hide the title
 
-            editSearch = (EditText) action.getCustomView().findViewById(R.id.edit_search); //the text editor
-
-            //this is a listener to do a search when the user clicks on search button
-            editSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-                @Override
-                public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                    if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                        Toast.makeText(getApplicationContext(), "search done", Toast.LENGTH_SHORT).show();
-                        return true;
+//            if(searchMACTV == null) {
+                searchMACTV = (SpaceMultiAutoCompleteTextView) action.getCustomView().findViewById(R.id.search_mactv); //the text editor
+                ArrayList<String> autoCompleteTagList = dbHandler.getTagNames();
+                ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+                        android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);
+                searchMACTV.setAdapter(adapter);
+                searchMACTV.setThreshold(2);
+                //this is a listener to do a search when the user clicks on search button
+                searchMACTV.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                    @Override
+                    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                            Toast.makeText(getApplicationContext(), "search done", Toast.LENGTH_SHORT).show();
+                            return true;
+                        }
+                        return false;
                     }
-                    return false;
-                }
-            });
+                });
+
+//            }
 
 
-            editSearch.requestFocus();
+            searchMACTV.requestFocus();
 
             //open the keyboard focused in the edtSearch
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.showSoftInput(editSearch, InputMethodManager.SHOW_IMPLICIT);
+            imm.showSoftInput(searchMACTV, InputMethodManager.SHOW_IMPLICIT);
 
 
             //add the close icon
@@ -247,14 +261,14 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    public void onBackPressed() {
-        if (isSearchOpened) {
-            handleMenuSearch();
-            return;
-        }
-        super.onBackPressed();
-    }
+//    @Override
+//    public void onBackPressed() {
+//        if (isSearchOpened) {
+//            handleMenuSearch();
+//            return;
+//        }
+//        super.onBackPressed();
+//    }
 
     /**
      * This hook is called whenever an item in a context menu is selected. The
@@ -371,11 +385,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
-        super.onResume();
         TextView demoTV = (TextView) findViewById(R.id.textView);
         demoTV.setText(" ");
         dbHandler.populateDemoTV(demoTV);
         populateRecentContent();
+        super.onResume();
 
     }
 
