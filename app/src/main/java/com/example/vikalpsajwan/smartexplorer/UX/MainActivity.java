@@ -261,14 +261,15 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-//    @Override
-//    public void onBackPressed() {
-//        if (isSearchOpened) {
-//            handleMenuSearch();
-//            return;
-//        }
-//        super.onBackPressed();
-//    }
+    @Override
+    public void onBackPressed() {
+        if (isSearchOpened) {
+            handleMenuSearch();
+            return;
+        }
+        finish();
+        super.onBackPressed();
+    }
 
     /**
      * This hook is called whenever an item in a context menu is selected. The

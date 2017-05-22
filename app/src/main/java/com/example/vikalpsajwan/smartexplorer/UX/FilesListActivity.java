@@ -344,6 +344,7 @@ public class FilesListActivity extends AppCompatActivity {
             handleMenuSearch();
             return;
         }
+        finish();
         super.onBackPressed();
     }
 

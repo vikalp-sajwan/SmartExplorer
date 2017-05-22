@@ -39,7 +39,7 @@ public class SpaceMultiAutoCompleteTextView extends android.support.v7.widget.Ap
 }
 
 
-class SpaceTokenizer implements android.support.v7.widget.AppCompatMultiAutoCompleteTextView.Tokenizer {
+class SpaceTokenizer extends android.support.v7.widget.AppCompatMultiAutoCompleteTextView.CommaTokenizer {
     /**
      * Returns the start of the token that ends at offset
      * <code>cursor</code> within <code>text</code>.
