@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:background="@android:color/holo_purple"
     android:orientation="vertical"
+    tools:context=".UX.AddContentActivity"
     android:padding="8dp">
 
     <ScrollView

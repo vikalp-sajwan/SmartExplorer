@@ -587,7 +587,7 @@ public class AddContentActivity extends AppCompatActivity {
                 capturedFile.delete();
             }
         }
-        finish();
+
         super.onBackPressed();
     }
 

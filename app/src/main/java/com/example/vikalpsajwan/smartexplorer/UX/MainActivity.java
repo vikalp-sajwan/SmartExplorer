@@ -267,7 +267,7 @@ public class MainActivity extends AppCompatActivity {
             handleMenuSearch();
             return;
         }
-        finish();
+
         super.onBackPressed();
     }
 

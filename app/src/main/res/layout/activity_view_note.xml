@@ -4,7 +4,9 @@
     android:layout_height="match_parent"
     android:background="?android:attr/colorBackground"
     android:orientation="vertical"
-    android:padding="10dp">
+    android:padding="10dp"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".UX.ViewNoteActivity">
 
     <TextView
         android:id="@+id/noteTextView"
