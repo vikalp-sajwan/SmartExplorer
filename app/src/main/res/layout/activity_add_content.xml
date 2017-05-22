@@ -22,6 +22,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
                 android:orientation="horizontal">
 
                 <EditText
@@ -29,10 +30,8 @@
                     style="@style/Widget.AppCompat.EditText"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_marginBottom="5dp"
                     android:layout_marginLeft="5dp"
                     android:layout_marginRight="5dp"
-                    android:layout_marginTop="5dp"
                     android:layout_weight="7"
                     android:background="@drawable/rounded_corner"
                     android:hint="@string/title"
@@ -44,10 +43,8 @@
                 <FrameLayout
                     android:layout_width="0dp"
                     android:layout_height="42dp"
-                    android:layout_marginBottom="5dp"
                     android:layout_marginLeft="0dp"
                     android:layout_marginRight="5dp"
-                    android:layout_marginTop="5dp"
                     android:layout_weight="5"
                     android:background="@drawable/rounded_corner">
 
@@ -64,18 +61,17 @@
 
 
             <View
-                android:id="@+id/view"
                 android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:background="@color/colorPrimaryDark" />
+                android:layout_height="@dimen/height_divider"
+                android:background="@color/divider"
+                android:layout_marginTop="@dimen/material_generic"
+                android:layout_marginBottom="@dimen/material_generic" />
 
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="42dp"
-                android:layout_marginBottom="5dp"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp"
-                android:layout_marginTop="5dp"
                 android:background="@drawable/rounded_corner">
 
                 <com.example.vikalpsajwan.smartexplorer.UX.SpaceMultiAutoCompleteTextView
@@ -93,17 +89,20 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:background="@color/colorPrimaryDark" />
+                android:layout_height="@dimen/height_divider"
+                android:background="@color/divider"
+                android:layout_marginTop="@dimen/material_generic"
+                android:layout_marginBottom="@dimen/material_generic" />
 
             <LinearLayout
                 android:id="@+id/tag_container"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
                 android:layout_weight="1"
                 android:animateLayoutChanges="true"
-                android:orientation="vertical"
-                android:padding="8dp" />
+                android:orientation="vertical" />
         </LinearLayout>
     </ScrollView>
 
