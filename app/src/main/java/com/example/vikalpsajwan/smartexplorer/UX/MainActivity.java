@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -219,10 +220,6 @@ public class MainActivity extends AppCompatActivity {
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
 
-        // getting runtime permission for reading storage on marshmallow and above
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(new String[]{"android.permission.WRITE_EXTERNAL_STORAGE"}, 1);
-        }
 
         // binding GUI elements in Layout 1
 //        searchEditText = (EditText) findViewById(R.id.editText);
@@ -246,6 +243,14 @@ public class MainActivity extends AppCompatActivity {
         // demonstration purpose
         TextView demoTV = (TextView) findViewById(R.id.textView);
         dbHandler.populateDemoTV(demoTV);
+
+        // getting runtime permission for reading storage on marshmallow and above
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this, "android.permission.WRITE_EXTERNAL_STORAGE") == PackageManager.PERMISSION_DENIED) {
+
+                requestPermissions(new String[]{"android.permission.WRITE_EXTERNAL_STORAGE"}, 1);
+            }
+        }
 
         // %%%%%%%%%%%%%%%%%%%%%%%%$$$$$$$$$$############
 //        searchButton.setOnLongClickListener(new View.OnLongClickListener() {
