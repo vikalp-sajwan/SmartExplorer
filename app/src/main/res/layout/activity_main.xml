@@ -39,13 +39,6 @@
 
 
         <!--    Button for third party database viewing feature    -->
-        <Button
-            android:id="@+id/button9"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:onClick="startDB"
-            android:text="@string/view_sqlite_database"
-            android:visibility="invisible" />
 
         <ListView
             android:id="@+id/recentContentListview"
@@ -54,14 +47,6 @@
             android:layout_marginTop="5dp"
             android:background="@android:color/background_light"
            />
-
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:enabled="false"
-            android:text=""
-            android:visibility="visible" />
 
 
     </LinearLayout>

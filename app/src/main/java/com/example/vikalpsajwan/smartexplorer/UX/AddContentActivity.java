@@ -30,11 +30,11 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.MultiAutoCompleteTextView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.vikalpsajwan.smartexplorer.CustomComponents.SpaceMultiAutoCompleteTextView;
 import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
 import com.example.vikalpsajwan.smartexplorer.models.ContentUnit;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;

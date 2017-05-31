@@ -25,12 +25,12 @@ import android.view.inputmethod.InputMethodManager;
 import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 
+import com.example.vikalpsajwan.smartexplorer.CustomComponents.SpaceMultiAutoCompleteTextView;
 import com.example.vikalpsajwan.smartexplorer.R;
 import com.example.vikalpsajwan.smartexplorer.models.AndroidDatabaseManager;
 import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
@@ -38,8 +38,10 @@ import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
+import static android.R.attr.action;
 import static android.widget.AdapterView.AdapterContextMenuInfo;
 import static android.widget.AdapterView.OnItemClickListener;
 
@@ -55,40 +57,16 @@ public class MainActivity extends AppCompatActivity {
     //CheckBox checkBoxTag;
     //AutoCompleteTextView actvTag;
     //Button searchButton;
+
     ListView recentContentListView;
     // data and adapter for recent content list
     ArrayList<SmartContent> sCData;
     FileListArrayAdapter flaa;
 
-    private MenuItem mSearchAction;
-    private boolean isSearchOpened = false;
-    private SpaceMultiAutoCompleteTextView searchMACTV;
-
     private DatabaseHandler dbHandler;
 
-    /**
-     * Prepare the Screen's standard options menu to be displayed.  This is
-     * called right before the menu is shown, every time it is shown.  You can
-     * use this method to efficiently enable/disable items or otherwise
-     * dynamically modify the contents.
-     * <p>
-     * <p>The default implementation updates the system menu items based on the
-     * activity's state.  Deriving classes should always call through to the
-     * base class implementation.
-     *
-     * @param menu The options menu as last shown or first initialized by
-     *             onCreateOptionsMenu().
-     * @return You must return true for the menu to be displayed;
-     * if you return false it will not be shown.
-     * @see #onCreateOptionsMenu
-     */
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        mSearchAction = menu.findItem(R.id.action_search);
-        return super.onPrepareOptionsMenu(menu);
-    }
 
-//     Toolbar
+    //     Toolbar
     private Toolbar mToolbar;
 
     /**
@@ -119,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
      */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
+        // Inflate the menu; this adds items to the mActionBar bar if it is present.
         getMenuInflater().inflate(R.menu.activity_main_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
@@ -127,84 +105,36 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-
+        Intent intent;
         switch (id) {
-            case R.id.camera_capture:
+            case R.id.action_camera_capture:
+                captureImage();
                 return true;
+
             case R.id.action_settings:
                 return true;
-            case R.id.show_all:
+
+            case R.id.action_show_all:
+                showAllFilesActivity();
                 return true;
+
+            case R.id.action_show_memory_elements:
+                intent = new Intent(this, InMemoryElementsActivity.class);
+                startActivity(intent);
+                return true;
+
+            case R.id.action_show_sql_db:
+                intent = new Intent(this, AndroidDatabaseManager.class);
+                startActivity(intent);
+                return true;
+
             case R.id.action_search:
-                handleMenuSearch();
+                intent = new Intent(this, SearchActivity.class);
+                startActivity(intent);
                 return true;
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    protected void handleMenuSearch() {
-        ActionBar action = getSupportActionBar(); //get the actionbar
-
-        if (isSearchOpened) { //test if the search is open
-
-            action.setDisplayShowCustomEnabled(false); //disable a custom view inside the actionbar
-            action.setDisplayShowTitleEnabled(true); //show the title in the action bar
-
-            //hides the keyboard
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(searchMACTV.getWindowToken(), 0);
-
-            //add the search icon in the action bar
-            mSearchAction.setIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_search));
-
-            isSearchOpened = false;
-        } else { //open the search entry
-
-            action.setDisplayShowCustomEnabled(true); //enable it to display a
-            // custom view in the action bar.
-
-            LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            View view = inflater.inflate(R.layout.search_bar, null);
-            action.setCustomView(view, new ActionBar.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-
-            //action.setCustomView(R.layout.search_bar);//add the custom view
-            action.setDisplayShowTitleEnabled(false); //hide the title
-
-//            if(searchMACTV == null) {
-                searchMACTV = (SpaceMultiAutoCompleteTextView) action.getCustomView().findViewById(R.id.search_mactv); //the text editor
-                ArrayList<String> autoCompleteTagList = dbHandler.getTagNames();
-                ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-                        android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);
-                searchMACTV.setAdapter(adapter);
-                searchMACTV.setThreshold(2);
-                //this is a listener to do a search when the user clicks on search button
-                searchMACTV.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-                    @Override
-                    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                            Toast.makeText(getApplicationContext(), "search done", Toast.LENGTH_SHORT).show();
-                            return true;
-                        }
-                        return false;
-                    }
-                });
-
-//            }
-
-
-            searchMACTV.requestFocus();
-
-            //open the keyboard focused in the edtSearch
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.showSoftInput(searchMACTV, InputMethodManager.SHOW_IMPLICIT);
-
-
-            //add the close icon
-            mSearchAction.setIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_close_search));
-
-            isSearchOpened = true;
-        }
     }
 
     @Override
@@ -241,40 +171,20 @@ public class MainActivity extends AppCompatActivity {
         populateRecentContent();
 
         // demonstration purpose
-        TextView demoTV = (TextView) findViewById(R.id.textView);
-        dbHandler.populateDemoTV(demoTV);
+//        TextView demoTV = (TextView) findViewById(R.id.textView);
+//        dbHandler.populateDemoTV(demoTV);
 
         // getting runtime permission for reading storage on marshmallow and above
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this, "android.permission.WRITE_EXTERNAL_STORAGE") == PackageManager.PERMISSION_DENIED) {
 
                 requestPermissions(new String[]{"android.permission.WRITE_EXTERNAL_STORAGE"}, 1);
             }
         }
 
-        // %%%%%%%%%%%%%%%%%%%%%%%%$$$$$$$$$$############
-//        searchButton.setOnLongClickListener(new View.OnLongClickListener() {
-//            @Override
-//            public boolean onLongClick(View v) {
-//                startDB(null);
-//                return true;
-//            }
-//        });
-
-
-        // %%%%%%%%%%%%%%%%%%%%$$$$$$$$$$$$$#############
 
     }
 
-    @Override
-    public void onBackPressed() {
-        if (isSearchOpened) {
-            handleMenuSearch();
-            return;
-        }
-
-        super.onBackPressed();
-    }
 
     /**
      * This hook is called whenever an item in a context menu is selected. The
@@ -354,6 +264,7 @@ public class MainActivity extends AppCompatActivity {
      */
     public void populateRecentContent() {
         sCData = dbHandler.getRecentContentData();
+
         flaa = new FileListArrayAdapter(this, R.layout.smart_content_list_item, sCData);
         recentContentListView.setAdapter(flaa);
 
@@ -390,12 +301,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume() {
-        TextView demoTV = (TextView) findViewById(R.id.textView);
-        demoTV.setText(" ");
-        dbHandler.populateDemoTV(demoTV);
+    protected void onRestart() {
         populateRecentContent();
-        super.onResume();
+        super.onRestart();
 
     }
 
@@ -486,7 +394,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * function to show all files activity when clicked on the show all files button in the Toolbar
      */
-    public void showAllFilesActivity(MenuItem item) {
+    public void showAllFilesActivity() {
         Intent intent = new Intent(this, FilesListActivity.class);
         intent.putExtra(FilesListActivity.EXTRA_SEARCH_MODE, FilesListActivity.SHOW_ALL);
         startActivity(intent);
@@ -519,21 +427,10 @@ public class MainActivity extends AppCompatActivity {
 //    }
 
     /**
-     * called on clicking show database (THIRD PARTY FEATURE) button in the main activity
-     *
-     * @param view
-     */
-    public void startDB(View view) {
-        Intent intent = new Intent(this, AndroidDatabaseManager.class);
-        startActivity(intent);
-    }
-
-    /**
      * called on clicking the capture by camera button in the menu toolbar
      *
-     * @param item
      */
-    public void captureImage(MenuItem item) {
+    public void captureImage() {
         Intent intent = new Intent(this, AddContentActivity.class);
         intent.putExtra("EXTRA_MODE", AddContentActivity.EXTRA_MODE_IMAGE_CAPTURE);
         startActivity(intent);

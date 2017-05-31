@@ -24,11 +24,11 @@ import android.view.inputmethod.InputMethodManager;
 import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.vikalpsajwan.smartexplorer.CustomComponents.SpaceMultiAutoCompleteTextView;
 import com.example.vikalpsajwan.smartexplorer.R;
 import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
@@ -51,9 +51,6 @@ public class FilesListActivity extends AppCompatActivity {
 //    private FileListAdapter fla;
     private int mode;
 
-    private MenuItem mSearchAction;
-    private boolean isSearchOpened = false;
-    private SpaceMultiAutoCompleteTextView searchMACTV;
 
     ArrayList<SmartContent> sCData;
     FileListArrayAdapter flaa;
@@ -89,7 +86,7 @@ public class FilesListActivity extends AppCompatActivity {
      */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
+        // Inflate the menu; this adds items to the mActionBar bar if it is present.
         getMenuInflater().inflate(R.menu.activity_files_list_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
@@ -99,75 +96,15 @@ public class FilesListActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if(id == R.id.action_search){
-            handleMenuSearch();
+            Intent intent = new Intent(this, SearchActivity.class);
+            startActivity(intent);
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    protected void handleMenuSearch() {
-        ActionBar action = getSupportActionBar(); //get the actionbar
 
-        if (isSearchOpened) { //test if the search is open
-
-            action.setDisplayShowCustomEnabled(false); //disable a custom view inside the actionbar
-            action.setDisplayShowTitleEnabled(true); //show the title in the action bar
-
-            //hides the keyboard
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(searchMACTV.getWindowToken(), 0);
-
-            //add the search icon in the action bar
-            mSearchAction.setIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_search));
-
-            isSearchOpened = false;
-        } else { //open the search entry
-
-            action.setDisplayShowCustomEnabled(true); //enable it to display a
-            // custom view in the action bar.
-
-            LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            View view = inflater.inflate(R.layout.search_bar, null);
-//            view.setBackgroundColor(getResources().getColor(R.color.textColorPrimary, getTheme()));
-            action.setCustomView(view, new ActionBar.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-
-            //action.setCustomView(R.layout.search_bar);//add the custom view
-            action.setDisplayShowTitleEnabled(false); //hide the title
-
-//            if(searchMACTV == null) {
-                searchMACTV = (SpaceMultiAutoCompleteTextView) action.getCustomView().findViewById(R.id.search_mactv); //the text editor
-                ArrayList<String> autoCompleteTagList = dbHandler.getTagNames();
-                ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-                        android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);
-                searchMACTV.setAdapter(adapter);
-                searchMACTV.setThreshold(2);
-                //this is a listener to do a search when the user clicks on search button
-                searchMACTV.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-                    @Override
-                    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                            Toast.makeText(getApplicationContext(), "search done", Toast.LENGTH_SHORT).show();
-                            return true;
-                        }
-                        return false;
-                    }
-                });
-
-//            }
-            searchMACTV.requestFocus();
-
-            //open the keyboard focused in the edtSearch
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.showSoftInput(searchMACTV, InputMethodManager.SHOW_IMPLICIT);
-
-
-            //add the close icon
-            mSearchAction.setIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_close_search));
-
-            isSearchOpened = true;
-        }
-    }
     /**
      * This hook is called whenever an item in a context menu is selected. The
      * default implementation simply returns false to have the normal processing
@@ -253,27 +190,6 @@ public class FilesListActivity extends AppCompatActivity {
     }
 
 
-    /**
-     * Prepare the Screen's standard options menu to be displayed.  This is
-     * called right before the menu is shown, every time it is shown.  You can
-     * use this method to efficiently enable/disable items or otherwise
-     * dynamically modify the contents.
-     * <p>
-     * <p>The default implementation updates the system menu items based on the
-     * activity's state.  Deriving classes should always call through to the
-     * base class implementation.
-     *
-     * @param menu The options menu as last shown or first initialized by
-     *             onCreateOptionsMenu().
-     * @return You must return true for the menu to be displayed;
-     * if you return false it will not be shown.
-     * @see #onCreateOptionsMenu
-     */
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        mSearchAction = menu.findItem(R.id.action_search);
-        return super.onPrepareOptionsMenu(menu);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -338,15 +254,6 @@ public class FilesListActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    public void onBackPressed() {
-        if (isSearchOpened) {
-            handleMenuSearch();
-            return;
-        }
-
-        super.onBackPressed();
-    }
 
     public void setupInterface(){
         // Using SmartContent data and ArrayListAdapter

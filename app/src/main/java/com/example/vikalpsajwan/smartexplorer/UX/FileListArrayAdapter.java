@@ -35,6 +35,9 @@ public class FileListArrayAdapter extends ArrayAdapter<SmartContent> {
 
 
     public View getView(int position, View convertView, ViewGroup parent){
+        ImageView sContentThumb;
+        ImageView sContentThumbOverlay;
+
         View v = convertView;
 
         LayoutInflater inflater = (LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -43,13 +46,17 @@ public class FileListArrayAdapter extends ArrayAdapter<SmartContent> {
             v = inflater.inflate(R.layout.smart_content_list_item, null);
         }
 
+        sContentThumb = (ImageView)v.findViewById(R.id.smart_content_thumb);
+        sContentThumbOverlay = (ImageView)v.findViewById(R.id.smart_content_thumb_overlay);
+        sContentThumb.setImageDrawable(null);
+        Glide.clear(sContentThumb);
+        sContentThumbOverlay.setVisibility(View.INVISIBLE);
+
         SmartContent sC = SmartContentData.get(position);
          if(sC != null){
-             ImageView sContentThumb = (ImageView)v.findViewById(R.id.smart_content_thumb);
-             ImageView sContentThumbOverlay = (ImageView)v.findViewById(R.id.smart_content_thumb_overlay);
 
              ContentTypeEnum ContentType = sC.getContentUnit().getContentType();
-             sContentThumbOverlay.setVisibility(View.INVISIBLE);
+            // sContentThumbOverlay.setVisibility(View.INVISIBLE);
 
              Drawable myDrawable;
 

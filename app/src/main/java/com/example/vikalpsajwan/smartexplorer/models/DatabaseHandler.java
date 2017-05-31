@@ -13,8 +13,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Scanner;
+import java.util.Set;
+
+import static android.R.attr.data;
 
 /**
  * Created by Vikalp on 05/02/2017.
@@ -52,16 +57,15 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 
     private static DatabaseHandler dbHandler;
-    public HashMap<Long, Tag> tagHash = new HashMap<Long, Tag>();
-    public HashMap<String, ContentTypeEnum> fileExtensionHash = new HashMap<String, ContentTypeEnum>();
+    public HashMap<Long, Tag> tagHash;
+    public HashMap<String, ContentTypeEnum> fileExtensionHash;
     // data structure to load and hold the files data
-    private ArrayList<SmartContent> smartContentData = new ArrayList<SmartContent>();
-    private HashMap<Long, SmartContent> smartContentHash = new HashMap<Long, SmartContent>();
-
+    private ArrayList<SmartContent> smartContentData;
+    private HashMap<Long, SmartContent> smartContentHash;
     // data structure to load and hold the tags data
-    private ArrayList<Tag> tagData = new ArrayList<Tag>();
+    private ArrayList<Tag> tagData;
     // data Structure to store text Content in memory
-    private HashMap<Long, TextContent> textContent = new HashMap<Long, TextContent>();
+    private HashMap<Long, TextContent> textContent;
 
     private DatabaseHandler(Context context) {
         super(context, dbName, null, 1);
@@ -91,6 +95,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         } else {
             return dbHandler;
         }
+    }
+
+    public HashMap<Long, SmartContent> getSmartContentHash() {
+        return smartContentHash;
     }
 
     public HashMap<Long, TextContent> getTextContent() {
@@ -554,6 +562,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * database and save them in appropriate data objects in memory
      */
     public void loadData() throws FileNotFoundException {
+        tagHash = new HashMap<Long, Tag>();
+        fileExtensionHash = new HashMap<String, ContentTypeEnum>();
+        smartContentData = new ArrayList<SmartContent>();
+        smartContentHash = new HashMap<Long, SmartContent>();
+        tagData = new ArrayList<Tag>();
+        textContent = new HashMap<Long, TextContent>();
+
         // getting tags data
         SQLiteDatabase db = dbHandler.getReadableDatabase();
         Cursor cur = db.rawQuery("SELECT * FROM " + tagsTable, null);
@@ -591,9 +606,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 } finally {
                     scanner.close();
                 }
+                textContent.put(sC.getContentID(), new TextContent(sC.getContentID(), contentText));
             }
 
-            textContent.put(sC.getContentID(),new TextContent(sC.getContentID(), contentText));
         }
 
         if (cur != null)
@@ -636,24 +651,25 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 
     // method to demonstrate tag and smartContent objects in memory
-    public void populateDemoTV(TextView demoTV) {
+    public String populateDemoTV() {
+        String returnValue = new String();
         for (int i = 0; i < tagData.size(); i++) {
-            demoTV.append("tag name: " + tagData.get(i).getTagName() + "\n"
+            returnValue = returnValue.concat("tag name: " + tagData.get(i).getTagName() + "\n"
                     + "tag id: " + tagData.get(i).getTagId() + "\n"
                     + "Is Unique: " + tagData.get(i).isUniqueContent() + "\n" +
                     "Associated files: "
             );
             ArrayList<SmartContent> associatedContent = tagData.get(i).getAssociatedContent();
-            for(int j =0 ; i<associatedContent.size(); j++){
-                demoTV.append(associatedContent.get(j).getContentName() + ", ");
+            for (int j = 0; j < associatedContent.size(); j++) {
+                returnValue = returnValue.concat(associatedContent.get(j).getContentName() + ", ");
             }
-            demoTV.append("\n\n");
+            returnValue = returnValue.concat("\n\n");
         }
 
-        demoTV.append("-----#############-----\n\n");
+        returnValue = returnValue.concat("-----#############-----\n\n");
 
         for (int i = 0; i < smartContentData.size(); i++) {
-            demoTV.append("content id: " + smartContentData.get(i).getContentID() + "\n" +
+            returnValue = returnValue.concat("content id: " + smartContentData.get(i).getContentID() + "\n" +
                     "alternate content: " + smartContentData.get(i).getAlternateContent() + "\n" +
                     "Description: " + smartContentData.get(i).getContentDescription() + "\n" +
                     "file name:" + smartContentData.get(i).getContentName() + "\n" +
@@ -663,12 +679,28 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             );
             ArrayList<Tag> associatedTags = smartContentData.get(i).getAssociatedTags();
             for (int j = 0; j < associatedTags.size(); j++) {
-                demoTV.append(associatedTags.get(j).getTagName() + "  ");
+                returnValue = returnValue.concat(associatedTags.get(j).getTagName() + "  ");
             }
-            demoTV.append("\n\n");
+            returnValue = returnValue.concat("\nname words: ");
+            for (String word : smartContentData.get(i).getContentNameWords()) {
+                returnValue = returnValue.concat(word + ",  ");
+            }
+
+
+            returnValue = returnValue.concat("\n\n");
         }
 
-        demoTV.append(fileExtensionHash.toString());
+        returnValue = returnValue.concat("-----#############-----\n\n");
+
+        returnValue = returnValue.concat("text content: \n");
+        returnValue = returnValue.concat(textContent.entrySet().toString());
+
+        returnValue = returnValue.concat("-----#############-----\n\n");
+
+
+        returnValue = returnValue.concat(fileExtensionHash.toString());
+
+        return returnValue;
     }
 
 
@@ -746,5 +778,32 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
 
         return result;
+    }
+
+    public ArrayList<String> getAutoCompleteTerms() {
+        ArrayList<String> words = new ArrayList<String>();
+        for(Tag tag: tagData){
+            if(!words.contains(tag.getTagName()))
+                words.add(tag.getTagName());
+        }
+
+        Collection<TextContent> collection = textContent.values();
+        Iterator itr = collection.iterator();
+        while (itr.hasNext()) {
+            TextContent tc = (TextContent)itr.next();
+
+            for(String word : tc.getNonStopWords())
+                if(!words.contains(word))
+                    words.add(word);
+
+        }
+
+        for( SmartContent sc: smartContentData){
+            for(String word : sc.getContentNameWords())
+                if(!words.contains(word))
+                    words.add(word);
+        }
+        return words;
+
     }
 }

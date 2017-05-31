@@ -1,4 +1,4 @@
-package com.example.vikalpsajwan.smartexplorer.UX;
+package com.example.vikalpsajwan.smartexplorer.CustomComponents;
 
 import android.content.Context;
 import android.graphics.Color;

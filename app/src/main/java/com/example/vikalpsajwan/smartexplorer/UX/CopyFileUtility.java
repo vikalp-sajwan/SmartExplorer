@@ -228,7 +228,15 @@ public class CopyFileUtility extends AsyncTask<Uri, Void, Void> {
     @Override
     protected void onPostExecute(Void aVoid) {
         Toast.makeText(context, "File added successfully", Toast.LENGTH_LONG).show();
-
+        /** Todo:
+         * lading data again
+         * could be inefficient in future
+         */
+        try {
+            dbHandler.loadData();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         super.onPostExecute(aVoid);
     }
 }
