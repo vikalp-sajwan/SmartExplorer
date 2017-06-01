@@ -117,33 +117,16 @@ public class SearchActivity extends AppCompatActivity {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    // hide keyboard
-                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);   // to show/hide keyboard
-                    imm.hideSoftInputFromWindow(searchMACTV.getWindowToken(), 0);
-
-                    searchMACTV.dismissDropDown();
-
-                    String searchString = searchMACTV.getText().toString().trim();
-                    if (searchString.isEmpty()) {
-                        Toast.makeText(getApplicationContext(), "Enter a valid search string", Toast.LENGTH_SHORT).show();
-                        return false;
-                    }
-
-                    //show progress dialog
-                    ProgressDialog pDialog = new ProgressDialog(SearchActivity.this);
-                    pDialog.setMessage("Search in Progress..."); //Set the message for the loading window
-                    pDialog.setCancelable(true);
-                    pDialog.setIndeterminate(false);
-                    pDialog.show();
-
-                    search(searchString);
-
-                    pDialog.dismiss();
-
-                    Toast.makeText(getApplicationContext(), "search done", Toast.LENGTH_SHORT).show();
-                    return true;
+                    return prepareSearch();
                 }
                 return false;
+            }
+        });
+
+        searchMACTV.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                prepareSearch();
             }
         });
 
@@ -158,6 +141,38 @@ public class SearchActivity extends AppCompatActivity {
         //add the close icon
 //        mSearchAction.setIcon(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_close_search));
 
+    }
+
+    /**
+     * checks for valid search string and calls the search() method
+     * @return true if search was done else false if Search String is empty.
+     */
+    public boolean prepareSearch(){
+        // hide keyboard
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);   // to show/hide keyboard
+        imm.hideSoftInputFromWindow(searchMACTV.getWindowToken(), 0);
+
+        searchMACTV.dismissDropDown();
+
+        String searchString = searchMACTV.getText().toString().trim();
+        if (searchString.isEmpty()) {
+            Toast.makeText(getApplicationContext(), "Enter a valid search string", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        //show progress dialog
+        ProgressDialog pDialog = new ProgressDialog(SearchActivity.this);
+        pDialog.setMessage("Search in Progress..."); //Set the message for the loading window
+        pDialog.setCancelable(true);
+        pDialog.setIndeterminate(false);
+        pDialog.show();
+
+        search(searchString);
+
+        pDialog.dismiss();
+
+        Toast.makeText(getApplicationContext(), "search done", Toast.LENGTH_SHORT).show();
+        return true;
     }
 
     /**
