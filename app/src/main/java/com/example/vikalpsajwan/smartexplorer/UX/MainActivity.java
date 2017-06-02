@@ -1,18 +1,22 @@
 package com.example.vikalpsajwan.smartexplorer.UX;
 
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -50,6 +54,10 @@ import static android.widget.AdapterView.OnItemClickListener;
 
 
 public class MainActivity extends AppCompatActivity {
+    ListView recentContentListView;
+    // data and adapter for recent content list
+    ArrayList<SmartContent> sCData;
+    FileListArrayAdapter flaa;
 
     // GUI elements layout 1
     //EditText searchEditText;
@@ -57,17 +65,50 @@ public class MainActivity extends AppCompatActivity {
     //CheckBox checkBoxTag;
     //AutoCompleteTextView actvTag;
     //Button searchButton;
-
-    ListView recentContentListView;
-    // data and adapter for recent content list
-    ArrayList<SmartContent> sCData;
-    FileListArrayAdapter flaa;
-
     private DatabaseHandler dbHandler;
 
-
+    // Our handler for received Intents. This will be called whenever an Intent
+    // with an action named "dbUpdated" is broadcasted.
+    private BroadcastReceiver mdbUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String message = intent.getStringExtra("message");
+            Log.d("receiver", "Got message: " + message);
+            populateRecentContent();
+        }
+    };
     //     Toolbar
     private Toolbar mToolbar;
+
+    /**
+     * Dispatch onPause() to fragments.
+     */
+    @Override
+    protected void onPause() {
+        // Unregister since the activity is about to be closed.
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mdbUpdateReceiver);
+
+        super.onPause();
+    }
+
+    /**
+     * Dispatch onResume() to fragments.  Note that for better inter-operation
+     * with older versions of the platform, at the point of this call the
+     * fragments attached to the activity are <em>not</em> resumed.  This means
+     * that in some cases the previous state may still be saved, not allowing
+     * fragment transactions that modify the state.  To correctly interact
+     * with fragments in their proper state, you should instead override
+     * {@link #onResumeFragments()}.
+     */
+    @Override
+    protected void onResume() {
+        // Register to receive messages.
+        // We are registering an observer (mMessageReceiver) to receive Intents
+        // with actions named "custom-event-name".
+        LocalBroadcastManager.getInstance(this).registerReceiver(mdbUpdateReceiver,
+                new IntentFilter("dbUpdated"));
+        super.onResume();
+    }
 
     /**
      * Initialize the contents of the Activity's standard options menu.  You
@@ -161,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
         recentContentListView = (ListView) findViewById(R.id.recentContentListview);
 
         dbHandler = DatabaseHandler.getDBInstance(getApplicationContext());
-
+        // dbHandler.dbResponse = this;
 
         ArrayList<String> autoCompleteTagList = dbHandler.getTagNames();
         ArrayAdapter<String> autoCompleteAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);
@@ -263,6 +304,8 @@ public class MainActivity extends AppCompatActivity {
      * method to load and populate the recent 7 contents in a list
      */
     public void populateRecentContent() {
+        recentContentListView.setAdapter(null);
+
         sCData = dbHandler.getRecentContentData();
 
         flaa = new FileListArrayAdapter(this, R.layout.smart_content_list_item, sCData);
@@ -428,11 +471,18 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * called on clicking the capture by camera button in the menu toolbar
-     *
      */
     public void captureImage() {
         Intent intent = new Intent(this, AddContentActivity.class);
         intent.putExtra("EXTRA_MODE", AddContentActivity.EXTRA_MODE_IMAGE_CAPTURE);
         startActivity(intent);
     }
+
+//    /**
+//     * method to be called when loadData() is  called in DatabaseHandler object
+//     */
+//    @Override
+//    public void dataLoadFinish() {
+//        populateRecentContent();
+//    }
 }

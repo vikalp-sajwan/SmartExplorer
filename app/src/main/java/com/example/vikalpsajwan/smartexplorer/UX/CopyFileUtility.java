@@ -27,7 +27,6 @@ import java.util.Scanner;
  */
 
 public class CopyFileUtility extends AsyncTask<Uri, Void, Void> {
-
     private Context context;
     private DatabaseHandler dbHandler;
     private ArrayList<String> tagNames;

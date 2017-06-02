@@ -2,12 +2,15 @@ package com.example.vikalpsajwan.smartexplorer.models;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.widget.TextView;
+
+import com.example.vikalpsajwan.smartexplorer.UX.DatabaseUpdatedResponse;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,15 +20,19 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Scanner;
-import java.util.Set;
-
-import static android.R.attr.data;
 
 /**
  * Created by Vikalp on 05/02/2017.
  */
 
 public class DatabaseHandler extends SQLiteOpenHelper {
+//    /**
+//        interface instance to employ listener pattern
+//     */
+//    public DatabaseUpdatedResponse dbResponse;
+
+    Context context;
+
     static final String dbName = "SmartExplorerDB";
 
     static final String contentTable = "content";
@@ -86,6 +93,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static DatabaseHandler getDBInstance(Context context) {
         if (dbHandler == null) {
             dbHandler = new DatabaseHandler(context);
+            dbHandler.context = context;
             try {
                 dbHandler.loadData();
             } catch (FileNotFoundException e) {
@@ -93,6 +101,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             }
             return dbHandler;
         } else {
+            dbHandler.context = context;
             return dbHandler;
         }
     }
@@ -119,6 +128,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+ //       dbResponse = null;
+
         //create files details table
         db.execSQL("CREATE TABLE " +
                 contentTable +
@@ -633,6 +644,17 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
         if (cur != null)
             cur.close();
+
+        // Send an Intent with an action named "custom-event-name". The Intent sent should
+        // be received by the ReceiverActivity.
+
+        Log.d("sender", "Broadcasting message");
+        Intent intent = new Intent("dbUpdated");
+        intent.putExtra("message", "This is my message!");
+
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+
+       // dbResponse.dataLoadFinish();
     }
 
     public Tag addTagInMemory(long tagId, String tagName, boolean isUnique) {
@@ -782,28 +804,29 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public ArrayList<String> getAutoCompleteTerms() {
         ArrayList<String> words = new ArrayList<String>();
-        for(Tag tag: tagData){
-            if(!words.contains(tag.getTagName()))
+        for (Tag tag : tagData) {
+            if (!words.contains(tag.getTagName()))
                 words.add(tag.getTagName());
         }
 
         Collection<TextContent> collection = textContent.values();
         Iterator itr = collection.iterator();
         while (itr.hasNext()) {
-            TextContent tc = (TextContent)itr.next();
+            TextContent tc = (TextContent) itr.next();
 
-            for(String word : tc.getNonStopWords())
-                if(!words.contains(word))
+            for (String word : tc.getNonStopWords())
+                if (!words.contains(word))
                     words.add(word);
 
         }
 
-        for( SmartContent sc: smartContentData){
-            for(String word : sc.getContentNameWords())
-                if(!words.contains(word))
+        for (SmartContent sc : smartContentData) {
+            for (String word : sc.getContentNameWords())
+                if (!words.contains(word))
                     words.add(word);
         }
         return words;
 
     }
+
 }
