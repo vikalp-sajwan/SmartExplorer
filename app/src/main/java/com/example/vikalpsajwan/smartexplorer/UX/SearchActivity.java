@@ -47,7 +47,7 @@ public class SearchActivity extends AppCompatActivity {
 
     //     Toolbar
     private Toolbar mToolbar;
-    private MenuItem mSearchAction;
+//    private MenuItem mSearchAction;
     private SpaceMultiAutoCompleteTextView searchMACTV;
     private DatabaseHandler dbHandler;
     ActionBar mActionBar;
@@ -85,7 +85,7 @@ public class SearchActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the mActionBar bar if it is present.
         getMenuInflater().inflate(R.menu.activity_search_menu, menu);
-        mSearchAction = menu.findItem(R.id.action_clear_text);
+//        mSearchAction = menu.findItem(R.id.action_clear_text);
 //        clearText();
         setUpSearch();
         return super.onCreateOptionsMenu(menu);

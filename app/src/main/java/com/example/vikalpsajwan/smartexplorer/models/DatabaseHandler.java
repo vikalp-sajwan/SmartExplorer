@@ -10,8 +10,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.example.vikalpsajwan.smartexplorer.UX.DatabaseUpdatedResponse;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -20,6 +18,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Scanner;
+
+import static com.example.vikalpsajwan.smartexplorer.models.AndroidDatabaseManager.indexInfo.index;
 
 /**
  * Created by Vikalp on 05/02/2017.
@@ -351,6 +351,44 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             cur.close();
         return returnValue;
     }
+
+
+    /**
+     * method to return a list of 9 most used tags
+     * @return arraylist<Tag>
+     */
+    public ArrayList<Tag> getMostUsedTags(){
+        ArrayList<Tag> allTags = (ArrayList<Tag>)getTagData().clone();
+        ArrayList<Tag> returnTags = new ArrayList<>();
+
+        for(int i = 0; i<9; i++){
+            int maxUseTimes = 0;
+            int index = 0;
+
+            for(int j = 0; j<allTags.size(); j++){
+                if(allTags.get(j)!=null){
+                    int useTimes = allTags.get(j).getAssociatedContent().size();
+                    if(useTimes > maxUseTimes) {
+                        maxUseTimes = useTimes;
+                        index = j;
+                    }
+                }
+            }
+
+
+            if (maxUseTimes == 0)
+                break;
+
+            returnTags.add(allTags.get(index));
+            // to remove selected max used tag from list
+            allTags.set(index, null);
+        }
+
+
+        return returnTags;
+
+    }
+
 
     /**
      * method to add a new tag in the database

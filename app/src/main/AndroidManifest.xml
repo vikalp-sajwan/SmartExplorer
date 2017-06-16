@@ -47,7 +47,7 @@
         <activity android:name=".models.AndroidDatabaseManager"
             android:theme="@style/Theme.AppCompat.Light"/>
 
-
+        <activity android:name=".UX.TagBasedSearchActivity"/>
 
 
 

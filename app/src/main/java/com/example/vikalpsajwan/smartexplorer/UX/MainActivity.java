@@ -29,6 +29,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.GridView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -55,6 +56,7 @@ import static android.widget.AdapterView.OnItemClickListener;
 
 public class MainActivity extends AppCompatActivity {
     ListView recentContentListView;
+    GridView tagsGridView;
     // data and adapter for recent content list
     ArrayList<SmartContent> sCData;
     FileListArrayAdapter flaa;
@@ -75,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
             String message = intent.getStringExtra("message");
             Log.d("receiver", "Got message: " + message);
             populateRecentContent();
+            populateTags();
         }
     };
     //     Toolbar
@@ -200,20 +203,19 @@ public class MainActivity extends AppCompatActivity {
         //searchButton = (Button) findViewById(R.id.button);
         //actvTag = (AutoCompleteTextView) findViewById(actvTag);
         recentContentListView = (ListView) findViewById(R.id.recentContentListview);
+        tagsGridView = (GridView) findViewById(R.id.popularTagsGridView);
 
         dbHandler = DatabaseHandler.getDBInstance(getApplicationContext());
         // dbHandler.dbResponse = this;
 
         ArrayList<String> autoCompleteTagList = dbHandler.getTagNames();
         ArrayAdapter<String> autoCompleteAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);
-        //actvTag.setThreshold(1);
-        //actvTag.setAdapter(autoCompleteAdapter);
 
         populateRecentContent();
 
-        // demonstration purpose
-//        TextView demoTV = (TextView) findViewById(R.id.textView);
-//        dbHandler.populateDemoTV(demoTV);
+        populateTags();
+
+
 
         // getting runtime permission for reading storage on marshmallow and above
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -303,7 +305,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * method to load and populate the recent 7 contents in a list
      */
-    public void populateRecentContent() {
+    private void populateRecentContent() {
         recentContentListView.setAdapter(null);
 
         sCData = dbHandler.getRecentContentData();
@@ -343,10 +345,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    protected void onRestart() {
-        populateRecentContent();
-        super.onRestart();
+
+    private void populateTags() {
+        final TagGridAdapter tagGridAdapter = new TagGridAdapter(this, dbHandler.getMostUsedTags());
+        tagsGridView.setAdapter(tagGridAdapter);
 
     }
 

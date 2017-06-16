@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Menu layout file for the search activity toolbar
-    currently it contains just one entry(icon) to show all the important files
+    Menu layout file for the tag based search activity
 
 -->
 
@@ -9,16 +8,8 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".UX.SearchActivity">
+    tools:context=".UX.TagBasedSearchActivity">
 
-
-
-    <item
-        android:id="@+id/action_clear_text"
-        android:title="Clear"
-        android:icon="@drawable/ic_close_search"
-        app:showAsAction="always"
-        />
 
     <item
         android:id="@+id/action_show_memory_elements"
