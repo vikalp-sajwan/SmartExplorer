@@ -434,43 +434,65 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return cur;
     }
 
-    /**
-     * method to return the files saved in the database based on a search by filename
-     *
-     * @param searchString
-     * @return
-     */
-    public ArrayList<SmartContent> searchContentByString(String searchString) {
-
-        SQLiteDatabase db = dbHandler.getReadableDatabase();
-
-//        Cursor cur = db.rawQuery("SELECT " + contentTable + "." + colContentId + " FROM " +
-//                        contentTable + ", " + tagsTable + ", " + contentTagTable +
-//                        " WHERE " + contentTable + "." + colContentId + "=" + contentTagTable + "." + colCtContentId +
-//                        " AND " + tagsTable + "." + coltagId + "=" + contentTagTable + "." + colCtTagId +
-//                        " AND (" +
-//                        coltagName +
-//                        " LIKE '%" +
-//                        searchString +
-//                        "%'" +
-//                        " OR " +
-//                        colContentName +
-//                        " LIKE '%" +
-//                        searchString +
-//                        "%')",
-//                null
-//        );
+//    /**
+//     * method to return the files saved in the database based on a search by filename
+//     *
+//     * @param searchString
+//     * @return
+//     */
+//    public ArrayList<SmartContent> searchContentByString(String searchString) {
 //
-//        Cursor cur = db.rawQuery("SELECT newTable." + colContentId + " FROM " +
-//                        "(SELECT " + contentTable + "." + colContentId + ", " + colContentName + ", " + colCtTagId + " FROM " +
-//                        contentTable + " LEFT OUTER JOIN " + contentTagTable + " ON "+
-//                        contentTable + "." + colContentId + " = " + contentTagTable + "." + colCtContentId + ") AS newTable, " +
-//                        tagsTable +
-//                        " ON " +
-//                        "newTable." + colContentId + " = " + contentTagTable + "." + colCtContentId
-//                        " WHERE " +
-////                        tagsTable + "." + coltagId + " = newTable." + colCtTagId +
+//        SQLiteDatabase db = dbHandler.getReadableDatabase();
+//
+////        Cursor cur = db.rawQuery("SELECT " + contentTable + "." + colContentId + " FROM " +
+////                        contentTable + ", " + tagsTable + ", " + contentTagTable +
+////                        " WHERE " + contentTable + "." + colContentId + "=" + contentTagTable + "." + colCtContentId +
+////                        " AND " + tagsTable + "." + coltagId + "=" + contentTagTable + "." + colCtTagId +
 ////                        " AND (" +
+////                        coltagName +
+////                        " LIKE '%" +
+////                        searchString +
+////                        "%'" +
+////                        " OR " +
+////                        colContentName +
+////                        " LIKE '%" +
+////                        searchString +
+////                        "%')",
+////                null
+////        );
+////
+////        Cursor cur = db.rawQuery("SELECT newTable." + colContentId + " FROM " +
+////                        "(SELECT " + contentTable + "." + colContentId + ", " + colContentName + ", " + colCtTagId + " FROM " +
+////                        contentTable + " LEFT OUTER JOIN " + contentTagTable + " ON "+
+////                        contentTable + "." + colContentId + " = " + contentTagTable + "." + colCtContentId + ") AS newTable, " +
+////                        tagsTable +
+////                        " ON " +
+////                        "newTable." + colContentId + " = " + contentTagTable + "." + colCtContentId
+////                        " WHERE " +
+//////                        tagsTable + "." + coltagId + " = newTable." + colCtTagId +
+//////                        " AND (" +
+////                        coltagName +
+////                        " LIKE '%" +
+////                        searchString +
+////                        "%'" +
+////                        " OR " +
+////                        colContentName +
+////                        " LIKE '%" +
+////                        searchString +
+////                        "%'",
+////                null
+////        );
+//
+//        Cursor cur = db.rawQuery("SELECT " + contentTable + "." + colContentId + " FROM " +
+//                        contentTable +
+//                        " LEFT OUTER JOIN " +
+//                        "(SELECT " + contentTagTable + "." + colCtTagId + ", " + coltagName + ", " + colCtContentId + " FROM " +
+//                        contentTagTable + ", " + tagsTable +
+//                        " WHERE " +
+//                        tagsTable + "." + coltagId + " = " + contentTagTable + "." + colCtTagId + ") AS newTable " +
+//                        " ON " +
+//                        "newTable." + colCtContentId + " = " + contentTable + "." + colContentId +
+//                        " WHERE " +
 //                        coltagName +
 //                        " LIKE '%" +
 //                        searchString +
@@ -482,42 +504,20 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 //                        "%'",
 //                null
 //        );
-
-        Cursor cur = db.rawQuery("SELECT " + contentTable + "." + colContentId + " FROM " +
-                        contentTable +
-                        " LEFT OUTER JOIN " +
-                        "(SELECT " + contentTagTable + "." + colCtTagId + ", " + coltagName + ", " + colCtContentId + " FROM " +
-                        contentTagTable + ", " + tagsTable +
-                        " WHERE " +
-                        tagsTable + "." + coltagId + " = " + contentTagTable + "." + colCtTagId + ") AS newTable " +
-                        " ON " +
-                        "newTable." + colCtContentId + " = " + contentTable + "." + colContentId +
-                        " WHERE " +
-                        coltagName +
-                        " LIKE '%" +
-                        searchString +
-                        "%'" +
-                        " OR " +
-                        colContentName +
-                        " LIKE '%" +
-                        searchString +
-                        "%'",
-                null
-        );
-
-        ArrayList<SmartContent> result = new ArrayList<>();
-        HashMap<Long, Boolean> temp = new HashMap<>();
-        SmartContent sC;
-        while (cur.moveToNext()) {
-            sC = dbHandler.smartContentHash.get(cur.getLong(0));
-            if (temp.get(sC.getContentID()) == null) {
-                result.add(sC);
-                temp.put(sC.getContentID(), true);
-            }
-        }
-
-        return result;
-    }
+//
+//        ArrayList<SmartContent> result = new ArrayList<>();
+//        HashMap<Long, Boolean> temp = new HashMap<>();
+//        SmartContent sC;
+//        while (cur.moveToNext()) {
+//            sC = dbHandler.smartContentHash.get(cur.getLong(0));
+//            if (temp.get(sC.getContentID()) == null) {
+//                result.add(sC);
+//                temp.put(sC.getContentID(), true);
+//            }
+//        }
+//
+//        return result;
+//    }
 
     /**
      * method to return all the tagnames stored in the database

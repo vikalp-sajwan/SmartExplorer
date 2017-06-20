@@ -1,12 +1,13 @@
 package com.example.vikalpsajwan.smartexplorer.models;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
  * Created by amitjha on 3/18/2017.
  */
 
-public class SmartContent{
+public class SmartContent implements Serializable{
 
 
     private long contentID;

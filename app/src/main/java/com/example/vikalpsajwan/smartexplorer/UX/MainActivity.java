@@ -12,30 +12,21 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.ContextMenu;
-import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 
-import com.example.vikalpsajwan.smartexplorer.CustomComponents.SpaceMultiAutoCompleteTextView;
 import com.example.vikalpsajwan.smartexplorer.R;
 import com.example.vikalpsajwan.smartexplorer.models.AndroidDatabaseManager;
 import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
@@ -43,10 +34,8 @@ import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
-import static android.R.attr.action;
 import static android.widget.AdapterView.AdapterContextMenuInfo;
 import static android.widget.AdapterView.OnItemClickListener;
 
@@ -208,8 +197,8 @@ public class MainActivity extends AppCompatActivity {
         dbHandler = DatabaseHandler.getDBInstance(getApplicationContext());
         // dbHandler.dbResponse = this;
 
-        ArrayList<String> autoCompleteTagList = dbHandler.getTagNames();
-        ArrayAdapter<String> autoCompleteAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);
+       // ArrayList<String> autoCompleteTagList = dbHandler.getTagNames();
+       // ArrayAdapter<String> autoCompleteAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);
 
         populateRecentContent();
 
@@ -321,20 +310,26 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent;
 
-                ContentTypeEnum contentType = sCData.get(position).getContentUnit().getContentType();
+//                ContentTypeEnum contentType = sCData.get(position).getContentUnit().getContentType();
 
-                if (contentType == ContentTypeEnum.Note || contentType == ContentTypeEnum.Location) {
-                    intent = new Intent(getApplicationContext(), ViewNoteActivity.class);
-                    intent.putExtra(ViewNoteActivity.EXTRA_CONTENT_ID, sCData.get(position).getContentID());
-                } else {
-                    File file = new File(sCData.get(position).getContentUnit().getContentAddress());
-                    Uri uri = Uri.fromFile(file);
-                    intent = new Intent(Intent.ACTION_VIEW, uri);
-                    String extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
-                    String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
-                    intent.setDataAndType(uri, mimeType);
-                }
+//                if (contentType == ContentTypeEnum.Note || contentType == ContentTypeEnum.Location) {
+////                    intent = new Intent(getApplicationContext(), ViewNoteActivity.class);
+//                    intent = new Intent(getApplicationContext(), ViewContentActivity.class);
+//
+//                    intent.putExtra(ViewContentActivity.EXTRA_CURRENT_CONTENT_INDEX, sCData.get(position));
+//                } else {
+//                    File file = new File(sCData.get(position).getContentUnit().getContentAddress());
+//                    Uri uri = Uri.fromFile(file);
+//                    intent = new Intent(Intent.ACTION_VIEW, uri);
+//                    String extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
+//                    String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
+//                    intent.setDataAndType(uri, mimeType);
+//                }
 
+                intent = new Intent(getApplicationContext(), ViewNoteActivity.class);
+                    intent = new Intent(getApplicationContext(), ViewContentActivity.class);
+                    intent.putExtra(ViewContentActivity.EXTRA_CONTENT_ARRAYLIST, sCData);
+                    intent.putExtra(ViewContentActivity.EXTRA_CURRENT_CONTENT_INDEX, position);
 
                 try {
                     startActivity(intent);

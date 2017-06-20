@@ -49,7 +49,7 @@
 
         <activity android:name=".UX.TagBasedSearchActivity"/>
 
-
+        <activity android:name=".UX.ViewContentActivity"/>
 
     </application>
 

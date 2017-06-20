@@ -2,13 +2,14 @@ package com.example.vikalpsajwan.smartexplorer.models;
 
 import android.util.Log;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
  * Created by amitjha on 3/18/2017.
  */
 
-public class Tag {
+public class Tag implements Serializable{
     private boolean isUniqueContent;
     private long tagId;
     private String tagName;

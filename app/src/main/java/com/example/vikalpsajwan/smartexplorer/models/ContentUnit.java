@@ -1,10 +1,12 @@
 package com.example.vikalpsajwan.smartexplorer.models;
 
+import java.io.Serializable;
+
 /**
  * Created by amitjha on 3/18/2017.
  */
 
-public class ContentUnit {
+public class ContentUnit implements Serializable{
     private String contentAddress;
     private ContentTypeEnum contentType;
 

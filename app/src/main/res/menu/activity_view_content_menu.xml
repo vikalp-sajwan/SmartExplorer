@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Menu layout file for the search activity toolbar
+    currently it contains just one entry(icon) to show all the important files
+
+-->
+
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".UX.ViewContentActivity">
+
+
+
+    <item
+        android:id="@+id/action_edit_content"
+        android:title="Edit"
+        android:icon="@drawable/ic_edit_content"
+        app:showAsAction="always"
+        android:orderInCategory="300"
+        />
+
+    <item
+        android:id="@+id/action_delete_content"
+        android:title="Delete"
+        android:icon="@drawable/ic_delete_content"
+        app:showAsAction="always"
+        android:orderInCategory="350"
+        />
+
+    <item
+        android:id="@+id/action_show_memory_elements"
+        android:orderInCategory="400"
+        android:title="Show Memory (TEST)"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_show_sql_db"
+        android:orderInCategory="500"
+        android:title="Show SQLite (TEST)"
+        app:showAsAction="never" />
+
+
+</menu>

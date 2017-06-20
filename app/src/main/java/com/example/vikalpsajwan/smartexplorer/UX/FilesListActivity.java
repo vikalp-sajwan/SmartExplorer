@@ -179,15 +179,15 @@ public class FilesListActivity extends AppCompatActivity {
     }
 
 
-    @Override
-
-    protected void onNewIntent(Intent intent) {
-        setIntent(intent);
-//        super.onNewIntent(intent);
-        String searchString = intent.getStringExtra(SearchManager.QUERY);
-        sCData = dbHandler.searchContentByString(searchString);
-        setupInterface();
-    }
+//    @Override
+//
+//    protected void onNewIntent(Intent intent) {
+//        setIntent(intent);
+////        super.onNewIntent(intent);
+//        String searchString = intent.getStringExtra(SearchManager.QUERY);
+//        sCData = dbHandler.searchContentByString(searchString);
+//        setupInterface();
+//    }
 
 
 
@@ -207,12 +207,12 @@ public class FilesListActivity extends AppCompatActivity {
         setSupportActionBar(mToolbar);
 
 
-        if( mode == SHOW_ALL){
+//        if( mode == SHOW_ALL){
             sCData = dbHandler.getSmartContentData();
-        } else{     // SEARCH mode
-            String searchString = intent.getStringExtra(SearchManager.QUERY);
-            sCData = dbHandler.searchContentByString(searchString);
-        }
+//        } else{     // SEARCH mode
+//            String searchString = intent.getStringExtra(SearchManager.QUERY);
+//            sCData = dbHandler.searchContentByString(searchString);
+//        }
 
         setupInterface();
 
@@ -268,21 +268,25 @@ public class FilesListActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent;
 
-                ContentTypeEnum contentType = sCData.get(position).getContentUnit().getContentType();
+//                ContentTypeEnum contentType = sCData.get(position).getContentUnit().getContentType();
+//
+//                if(contentType == ContentTypeEnum.Note || contentType == ContentTypeEnum.Location){
+//                    intent = new Intent(getApplicationContext(), ViewNoteActivity.class);
+//                    intent.putExtra(ViewNoteActivity.EXTRA_CONTENT_ID, sCData.get(position).getContentID());
+//                }
+//                else{
+//                    File file = new File(sCData.get(position).getContentUnit().getContentAddress());
+//                    Uri uri = Uri.fromFile(file);
+//                    intent = new Intent(Intent.ACTION_VIEW, uri);
+//                    String  extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
+//                    String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
+//                    intent.setDataAndType(uri, mimeType);
+//                }
 
-                if(contentType == ContentTypeEnum.Note || contentType == ContentTypeEnum.Location){
-                    intent = new Intent(getApplicationContext(), ViewNoteActivity.class);
-                    intent.putExtra(ViewNoteActivity.EXTRA_CONTENT_ID, sCData.get(position).getContentID());
-                }
-                else{
-                    File file = new File(sCData.get(position).getContentUnit().getContentAddress());
-                    Uri uri = Uri.fromFile(file);
-                    intent = new Intent(Intent.ACTION_VIEW, uri);
-                    String  extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
-                    String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
-                    intent.setDataAndType(uri, mimeType);
-                }
-
+                intent = new Intent(getApplicationContext(), ViewNoteActivity.class);
+                intent = new Intent(getApplicationContext(), ViewContentActivity.class);
+                intent.putExtra(ViewContentActivity.EXTRA_CONTENT_ARRAYLIST, sCData);
+                intent.putExtra(ViewContentActivity.EXTRA_CURRENT_CONTENT_INDEX, position);
 
                 try{
                     startActivity(intent);
