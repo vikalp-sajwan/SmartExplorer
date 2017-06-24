@@ -33,7 +33,6 @@ import com.example.vikalpsajwan.smartexplorer.models.AndroidDatabaseManager;
 import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
-import com.example.vikalpsajwan.smartexplorer.models.Tag;
 import com.example.vikalpsajwan.smartexplorer.models.TextContent;
 
 import java.io.File;
@@ -199,7 +198,7 @@ public class SearchActivity extends AppCompatActivity {
                 SmartContent sC = sCData.get(i_SC);
                 long contentId = sC.getContentID();
                 if (sC.getContentUnit().getContentType() == ContentTypeEnum.Note) {
-                    TextContent tC = dbHandler.getTextContent().get(contentId);
+                    TextContent tC = dbHandler.getTextContentHash().get(contentId);
                     if (tC.isWordPresentInContent(words[i_W])) {
                         fCData.addFoundContent(contentId, FoundContent.CONTENT_SCORE);
                     }
@@ -298,7 +297,7 @@ public class SearchActivity extends AppCompatActivity {
                     AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
                     SmartContent sC = matchSC.get(info.position);
                     flaa.remove(sC);
-                    dbHandler.deleteSmartContent(sC);
+                    dbHandler.deleteSmartContent(sC.getContentID());
                 }
             });
             alertDialog.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {

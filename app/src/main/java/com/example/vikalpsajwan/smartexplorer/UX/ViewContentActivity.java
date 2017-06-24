@@ -1,13 +1,19 @@
 package com.example.vikalpsajwan.smartexplorer.UX;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -41,6 +47,70 @@ public class ViewContentActivity extends AppCompatActivity {
 
 
     public static final String EXTRA_CURRENT_CONTENT_INDEX = "CurrentContentIndex";
+
+    boolean isActivityVisible;
+    boolean isDataSetChanged;
+
+    // Our handler for received Intents. This will be called whenever an Intent
+    // with an action named "dbUpdated" is broadcasted.
+    private BroadcastReceiver mdbUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String message = intent.getStringExtra("message");
+            Log.d("receiver", "Got message: " + message);
+            if(isActivityVisible) {
+                mCustomPagerAdapter.notifyDataSetChanged();
+                int position = mViewPager.getCurrentItem();
+                // update the current smart content reference
+                scData.set(position, dbHandler.getSmartContentHash().get(scData.get(position).getContentID()));
+                contentTitleTV.setText(scData.get(position).getContentName());
+
+            }
+            else
+                isDataSetChanged = true;
+        }
+    };
+
+    /**
+     * Dispatch onPause() to fragments.
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        isActivityVisible = false;
+    }
+
+    /**
+     * Dispatch onResume() to fragments.  Note that for better inter-operation
+     * with older versions of the platform, at the point of this call the
+     * fragments attached to the activity are <em>not</em> resumed.  This means
+     * that in some cases the previous state may still be saved, not allowing
+     * fragment transactions that modify the state.  To correctly interact
+     * with fragments in their proper state, you should instead override
+     * {@link #onResumeFragments()}.
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        isActivityVisible = true;
+        if(isDataSetChanged){
+//            updateRecentContent();
+            mCustomPagerAdapter.notifyDataSetChanged();
+            int position = mViewPager.getCurrentItem();
+            // update the current smart content reference
+            scData.set(position, dbHandler.getSmartContentHash().get(scData.get(position).getContentID()));
+            contentTitleTV.setText(scData.get(position).getContentName());
+            isDataSetChanged=false;
+        }
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Unregister since the activity is about to be closed.
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mdbUpdateReceiver);
+    }
 
     @Override
     protected void onCreate( Bundle savedInstanceState) {
@@ -107,6 +177,12 @@ public class ViewContentActivity extends AppCompatActivity {
 //        });
         //Toast.makeText(this, currentContentIndex+"", Toast.LENGTH_LONG).show();
         mViewPager.setCurrentItem(currentContentIndex,false);
+
+        // Register to receive messages.
+        // We are registering an observer (mMessageReceiver) to receive Intents
+        // with actions named "dbUpdated".
+        LocalBroadcastManager.getInstance(this).registerReceiver(mdbUpdateReceiver,
+                new IntentFilter(DatabaseHandler.DB_UPDATED));
     }
 
     @Override
@@ -124,11 +200,48 @@ public class ViewContentActivity extends AppCompatActivity {
         switch (id) {
 
             case R.id.action_edit_content:
-                //todo
+                intent = new Intent(this, AddContentActivity.class);
+                intent.putExtra(AddContentActivity.EXTRA_MODE, AddContentActivity.EXTRA_MODE_EDIT_CONTENT);
+                int sCIndex = mViewPager.getCurrentItem();
+                SmartContent sC = scData.get(sCIndex);
+                intent.putExtra(AddContentActivity.EXTRA_CONTENT_ID, sC.getContentID());
+                startActivity(intent);
                 return true;
 
             case R.id.action_delete_content:
-                //todo
+                final AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+                alertDialog.setTitle("DELETE following content. Continue?");
+                alertDialog.setMessage("Are you sure you want to DELETE this content?");
+                alertDialog.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        int sCIndex = mViewPager.getCurrentItem();
+                        SmartContent sC = scData.get(sCIndex);
+                        scData.remove(sCIndex);
+                        mCustomPagerAdapter.notifyDataSetChanged();
+
+                        // finish the activity if deletes content was the only one
+                        if(scData.size()==0) {
+                            finish();
+                        }
+//                        else if(scData.size() > sCIndex)
+//                            mViewPager.setCurrentItem(sCIndex);
+//                        else
+//                            mViewPager.setCurrentItem(sCIndex-1);
+                        dbHandler.deleteSmartContent(sC.getContentID());
+                    }
+                });
+                alertDialog.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+                alertDialog.setIcon(android.R.drawable.ic_dialog_alert);
+                alertDialog.setCancelable(false);
+                alertDialog.show();
+
                 return true;
 
             case R.id.action_show_memory_elements:

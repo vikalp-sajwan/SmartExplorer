@@ -2,16 +2,20 @@ package com.example.vikalpsajwan.smartexplorer.UX;
 
 import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -34,6 +38,8 @@ import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
 
+import static android.widget.AdapterView.OnItemClickListener;
+
 import java.io.File;
 import java.util.ArrayList;
 
@@ -55,8 +61,62 @@ public class FilesListActivity extends AppCompatActivity {
     ArrayList<SmartContent> sCData;
     FileListArrayAdapter flaa;
 
+    boolean isActivityVisible;
+    boolean isDataSetChanged;
+
+    // Our handler for received Intents. This will be called whenever an Intent
+    // with an action named "dbUpdated" is broadcasted.
+    private BroadcastReceiver mdbUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String message = intent.getStringExtra("message");
+            Log.d("receiver", "Got message: " + message);
+            if(isActivityVisible) {
+                setupInterface();
+            }
+            else
+                isDataSetChanged = true;
+        }
+    };
+
 //    Toolbar
     private Toolbar mToolbar;
+
+    /**
+     * Dispatch onPause() to fragments.
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        isActivityVisible = false;
+    }
+
+    /**
+     * Dispatch onResume() to fragments.  Note that for better inter-operation
+     * with older versions of the platform, at the point of this call the
+     * fragments attached to the activity are <em>not</em> resumed.  This means
+     * that in some cases the previous state may still be saved, not allowing
+     * fragment transactions that modify the state.  To correctly interact
+     * with fragments in their proper state, you should instead override
+     * {@link #onResumeFragments()}.
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        isActivityVisible = true;
+        if(isDataSetChanged){
+            setupInterface();
+            isDataSetChanged = false;
+        }
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Unregister since the activity is about to be closed.
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mdbUpdateReceiver);
+    }
 
     /**
      * Initialize the contents of the Activity's standard options menu.  You
@@ -135,8 +195,8 @@ public class FilesListActivity extends AppCompatActivity {
                     dialog.dismiss();
                     AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
                     SmartContent sC = sCData.get(info.position);
-                    flaa.remove(sC);
-                    dbHandler.deleteSmartContent(sC);
+//                    flaa.remove(sC);
+                    dbHandler.deleteSmartContent(sC.getContentID());
                 }
             });
             alertDialog.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -207,15 +267,15 @@ public class FilesListActivity extends AppCompatActivity {
         setSupportActionBar(mToolbar);
 
 
-//        if( mode == SHOW_ALL){
-            sCData = dbHandler.getSmartContentData();
-//        } else{     // SEARCH mode
-//            String searchString = intent.getStringExtra(SearchManager.QUERY);
-//            sCData = dbHandler.searchContentByString(searchString);
-//        }
+        listView = (ListView) findViewById(R.id.files_listview);
 
         setupInterface();
 
+        // Register to receive messages.
+        // We are registering an observer (mMessageReceiver) to receive Intents
+        // with actions named "dbUpdated".
+        LocalBroadcastManager.getInstance(this).registerReceiver(mdbUpdateReceiver,
+                new IntentFilter(DatabaseHandler.DB_UPDATED));
 
 
 
@@ -256,8 +316,10 @@ public class FilesListActivity extends AppCompatActivity {
 
 
     public void setupInterface(){
-        // Using SmartContent data and ArrayListAdapter
-        listView = (ListView) findViewById(R.id.files_listview);
+
+        listView.setAdapter(null);
+
+        sCData = dbHandler.getSmartContentData();
 
         // custom ArrayList adapter
         flaa = new FileListArrayAdapter(this, R.layout.smart_content_list_item, sCData );
@@ -268,22 +330,6 @@ public class FilesListActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent;
 
-//                ContentTypeEnum contentType = sCData.get(position).getContentUnit().getContentType();
-//
-//                if(contentType == ContentTypeEnum.Note || contentType == ContentTypeEnum.Location){
-//                    intent = new Intent(getApplicationContext(), ViewNoteActivity.class);
-//                    intent.putExtra(ViewNoteActivity.EXTRA_CONTENT_ID, sCData.get(position).getContentID());
-//                }
-//                else{
-//                    File file = new File(sCData.get(position).getContentUnit().getContentAddress());
-//                    Uri uri = Uri.fromFile(file);
-//                    intent = new Intent(Intent.ACTION_VIEW, uri);
-//                    String  extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
-//                    String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
-//                    intent.setDataAndType(uri, mimeType);
-//                }
-
-                intent = new Intent(getApplicationContext(), ViewNoteActivity.class);
                 intent = new Intent(getApplicationContext(), ViewContentActivity.class);
                 intent.putExtra(ViewContentActivity.EXTRA_CONTENT_ARRAYLIST, sCData);
                 intent.putExtra(ViewContentActivity.EXTRA_CURRENT_CONTENT_INDEX, position);
@@ -299,12 +345,5 @@ public class FilesListActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-//        if(resultCursor != null)
-//            resultCursor.close();
-        if(dbHandler != null)
-            dbHandler.close();
-    }
+
 }

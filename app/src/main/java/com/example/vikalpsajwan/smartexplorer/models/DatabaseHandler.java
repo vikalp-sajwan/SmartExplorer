@@ -19,8 +19,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Scanner;
 
-import static com.example.vikalpsajwan.smartexplorer.models.AndroidDatabaseManager.indexInfo.index;
-
 /**
  * Created by Vikalp on 05/02/2017.
  */
@@ -62,6 +60,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 //    static final String colTextContentid = "colTextContentid";
 //    static final String colText = "colText";
 
+    public static final String DB_UPDATED = "dBUpdated";
 
     private static DatabaseHandler dbHandler;
     public HashMap<Long, Tag> tagHash;
@@ -72,7 +71,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     // data structure to load and hold the tags data
     private ArrayList<Tag> tagData;
     // data Structure to store text Content in memory
-    private HashMap<Long, TextContent> textContent;
+    private HashMap<Long, TextContent> textContentHash;
 
     private DatabaseHandler(Context context) {
         super(context, dbName, null, 1);
@@ -110,8 +109,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return smartContentHash;
     }
 
-    public HashMap<Long, TextContent> getTextContent() {
-        return textContent;
+    public HashMap<Long, TextContent> getTextContentHash() {
+        return textContentHash;
     }
 
     public ArrayList<SmartContent> getSmartContentData() {
@@ -616,7 +615,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         smartContentData = new ArrayList<SmartContent>();
         smartContentHash = new HashMap<Long, SmartContent>();
         tagData = new ArrayList<Tag>();
-        textContent = new HashMap<Long, TextContent>();
+        textContentHash = new HashMap<Long, TextContent>();
 
         // getting tags data
         SQLiteDatabase db = dbHandler.getReadableDatabase();
@@ -643,7 +642,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             smartContentData.add(sC);
             String contentText = new String();
 
-            // if content is of type text then copy its text in inmemory textContent structure
+            // if content is of type text then copy its text in inmemory textContentHash structure
             if (sC.getContentUnit().getContentType() == ContentTypeEnum.Note
                     || sC.getContentUnit().getContentType() == ContentTypeEnum.Location) {
                 File file = new File(sC.getContentUnit().getContentAddress());
@@ -655,7 +654,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 } finally {
                     scanner.close();
                 }
-                textContent.put(sC.getContentID(), new TextContent(sC.getContentID(), contentText));
+                textContentHash.put(sC.getContentID(), new TextContent(sC.getContentID(), contentText));
             }
 
         }
@@ -683,16 +682,24 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         if (cur != null)
             cur.close();
 
+        broadcastDBUpdated();
+    }
+
+    /**
+     *  Method to broadcast that the database has been updated after some operation
+     *  so, any activity that is in memory should update its data to show proper output
+     */
+    public void broadcastDBUpdated(){
         // Send an Intent with an action named "custom-event-name". The Intent sent should
         // be received by the ReceiverActivity.
 
         Log.d("sender", "Broadcasting message");
-        Intent intent = new Intent("dbUpdated");
+        Intent intent = new Intent(DB_UPDATED);
         intent.putExtra("message", "This is my message!");
 
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
-       // dbResponse.dataLoadFinish();
+        // dbResponse.dataLoadFinish();
     }
 
     public Tag addTagInMemory(long tagId, String tagName, boolean isUnique) {
@@ -753,7 +760,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         returnValue = returnValue.concat("-----#############-----\n\n");
 
         returnValue = returnValue.concat("text content: \n");
-        returnValue = returnValue.concat(textContent.entrySet().toString());
+        returnValue = returnValue.concat(textContentHash.entrySet().toString());
 
         returnValue = returnValue.concat("-----#############-----\n\n");
 
@@ -790,7 +797,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.delete(contentTagTable, colCtContentId + "=? and " + colCtTagId + "=?", new String[]{"" + contentID, "" + tagId});
     }
 
-    public void deleteSmartContent(SmartContent sC) {
+    public void deleteSmartContent(long contentID) {
+        SmartContent sC = smartContentHash.get(contentID);
+
         // delete in database
         for (Tag tag : sC.getAssociatedTags()) {
             deleteFileTagEntry(sC.getContentID(), tag.getTagId());
@@ -798,7 +807,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         deleteFile(sC.getContentID());
 
         // delete text in main memory in case of text type content
-        textContent.remove(sC.getContentID());
+        textContentHash.remove(sC.getContentID());
 
         // delete in storage
         File file = new File(sC.getContentUnit().getContentAddress());
@@ -809,15 +818,123 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         // delete in memory
         for (Tag tag : sC.getAssociatedTags()) {
             tag.getAssociatedContent().remove(sC);
+//            ArrayList<SmartContent> associatedContent = tag.getAssociatedContent();
+//            for(int i = 0; i< associatedContent.size(); i++){
+//                if(associatedContent.get(i).getContentID() == sC.getContentID()) {
+//                    associatedContent.remove(i);
+//                    break;
+//                }
+//            }
         }
         smartContentHash.remove(sC.getContentID());
+
+//        for(int i = 0; i<smartContentData.size(); i++){
+//            if(smartContentData.get(i).getContentID() == sC.getContentID()) {
+//                smartContentData.remove(i);
+//                break;
+//            }
+//        }
         smartContentData.remove(sC);
+
+        broadcastDBUpdated();
 
     }
 
     private void deleteFile(long contentID) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(contentTable, "_id=?", new String[]{"" + contentID});
+    }
+
+    /**
+     * edits the content information in database and calls loadData() in last to update in-memory data
+     */
+    public void editContent(long contentID, String contentName, String contentDescription, ArrayList<String> newTags, ArrayList<Boolean> newTagsUniqueness){
+        SmartContent sC = smartContentHash.get(contentID);
+
+        // rename the file in storage
+        File from = new File(sC.getContentUnit().getContentAddress());
+        File to = new File(context.getExternalFilesDir(null) + File.separator + contentName);
+        from.renameTo(to);
+
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // update data in contents Table
+        ContentValues cv = new ContentValues();
+        cv.put(DatabaseHandler.colContentAddress, to.getAbsolutePath());
+        cv.put(DatabaseHandler.colContentName, contentName);
+        cv.put(DatabaseHandler.colContentDescription, contentDescription);
+
+        db.update(DatabaseHandler.contentTable, cv, "_id=" + contentID, null);
+
+
+        // delete all the entries associated with this content in content_tag table
+        db.delete(contentTagTable, colCtContentId + "=?", new String[]{"" + contentID});
+
+        for(int i =0; i<newTags.size(); i++){
+            long tagID = isTagPresent(newTags.get(i));
+
+            if(tagID == -1)     // not present - create tag in tag table and add entry in contentTag table
+            {
+                cv = new ContentValues();
+                cv.put(DatabaseHandler.coltagName, newTags.get(i));
+                if(newTagsUniqueness.get(i))
+                    cv.put(DatabaseHandler.colIsUniqueTag, 1);
+                else
+                    cv.put(DatabaseHandler.colIsUniqueTag, 0);
+
+                tagID = db.insert(tagsTable, null, cv);
+            }
+            else{
+                Tag tag = tagHash.get(tagID);
+
+                // if already present tag was unique and now it is changed to notUnique
+                // just change the uniqueness of tag in tag table
+                // if it was unique and its uniqueness is not changed, do nothing
+                if(tag.isUniqueContent() && newTagsUniqueness.get(i)==false){
+                    cv = new ContentValues();
+                    cv.put(DatabaseHandler.colIsUniqueTag, 0);
+                    db.update(DatabaseHandler.tagsTable, cv, "_id=" + tag.getTagId(), null);
+
+
+                }else if(!tag.isUniqueContent() && newTagsUniqueness.get(i)==true){
+                    //already present tag was not unique and now it is changed to Unique
+                    // change uniqueness of tag in tag table and delete all associated content except present one
+                    // if it was not unique and is still same, then do nothing
+                    // do not delete the current smartContent
+                    ArrayList<SmartContent> associatedFiles = tag.getAssociatedContent();
+                    while(associatedFiles.size()!=1){
+                        if(associatedFiles.get(0).getContentID()!=sC.getContentID())
+                            dbHandler.deleteSmartContent(associatedFiles.get(0).getContentID());
+                        else
+                            dbHandler.deleteSmartContent(associatedFiles.get(1).getContentID());
+
+                    }
+
+                    cv = new ContentValues();
+                    cv.put(DatabaseHandler.colIsUniqueTag, 1);
+                    db.update(DatabaseHandler.tagsTable, cv, "_id=" + tag.getTagId(), null);
+
+
+                }
+
+            }
+
+            // make entry in contentTag table
+            cv = new ContentValues();
+            cv.put(DatabaseHandler.colCtContentId, sC.getContentID());
+            cv.put(DatabaseHandler.colCtTagId, tagID);
+            db.insert(contentTagTable, null, cv);
+
+        }
+
+
+        try {
+            loadData();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**
@@ -847,7 +964,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 words.add(tag.getTagName());
         }
 
-        Collection<TextContent> collection = textContent.values();
+        Collection<TextContent> collection = textContentHash.values();
         Iterator itr = collection.iterator();
         while (itr.hasNext()) {
             TextContent tc = (TextContent) itr.next();

@@ -5,6 +5,7 @@
     android:layout_height="match_parent">
 
     <FrameLayout
+        android:id="@+id/clickable_frame"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
@@ -15,8 +16,8 @@
             android:id="@+id/note_text_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="invisible"
-            android:padding="24dp"/>
+            android:padding="24dp"
+            android:visibility="invisible" />
 
         <ImageView
             android:id="@+id/smart_content_thumb"

@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
+import static android.R.attr.mode;
 import static android.widget.Toast.LENGTH_LONG;
 
 /**
@@ -63,31 +64,35 @@ import static android.widget.Toast.LENGTH_LONG;
  */
 
 public class AddContentActivity extends AppCompatActivity {
+    public static final String EXTRA_MODE = "EXTRA_MODE";
+    public static final String EXTRA_CONTENT_ID = "EXTRA_CONTENT_ID";
+
     public static final int EXTRA_MODE_FILE_SHARE = 0;
     public static final int EXTRA_MODE_TEXT_SHARE = 1;
     public static final int EXTRA_MODE_IMAGE_CAPTURE = 2;
+    public static final int EXTRA_MODE_EDIT_CONTENT = 3;
 
     private static final int CAMERA_REQUEST_CODE = 111;
 
-    int mMode;
+    Integer mMode;
     ArrayList<String> mfileTags = new ArrayList<String>();
     ArrayList<Boolean> mfileTagsUniqueness = new ArrayList<Boolean>();
-    HashMap<String, Boolean> addedTags = new HashMap<>();
+    HashMap<String, Boolean> addedTags;
     Uri mUri;
     EditText fileNameEditText;
-//    AutoCompleteTextView tagAutoCompleteTextView;
+    //    AutoCompleteTextView tagAutoCompleteTextView;
 //    Button addTagButton;
     Button addContentButton;
     LinearLayout tagContainer;
     Spinner contentCategorySpinner;
     SpaceMultiAutoCompleteTextView descriptionMACTV;
-    private DatabaseHandler dbHandler;
-    private CopyFileUtility copyUtil;
-
-    // a variable to keep count of length of text in description box - used in afterTextChanged
-    private int previousDescriptionLength = 0 ;
     // HashMap of once removed tags by user and which are to be avoided when typed again in same session
     HashMap<String, Boolean> removedTags;
+    private DatabaseHandler dbHandler;
+    private CopyFileUtility copyUtil;
+    private TextWatcher mTextWatcher;
+    // a variable to keep count of length of text in description box - used in afterTextChanged
+    private int previousDescriptionLength = 0;
 
     /**
      * Dispatch incoming result to the correct fragment.
@@ -99,7 +104,7 @@ public class AddContentActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == CAMERA_REQUEST_CODE && resultCode != Activity.RESULT_OK){
+        if (requestCode == CAMERA_REQUEST_CODE && resultCode != Activity.RESULT_OK) {
             finish();
         }
 
@@ -121,17 +126,17 @@ public class AddContentActivity extends AppCompatActivity {
         descriptionMACTV = (SpaceMultiAutoCompleteTextView) findViewById(R.id.description_mactv);
 
         removedTags = new HashMap<String, Boolean>();
+        addedTags = new HashMap<String,Boolean>();
 
         contentCategorySpinner.setAdapter(new ArrayAdapter<ContentTypeEnum>(this, R.layout.file_category_spinner_item, ContentTypeEnum.values()));
 
         ArrayList<String> autoCompleteTagList = dbHandler.getTagNames();
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+        ArrayAdapter<String> autoCompleteAdapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);
-        descriptionMACTV.setAdapter(adapter);
+        descriptionMACTV.setAdapter(autoCompleteAdapter);
         descriptionMACTV.setThreshold(2);
 
-        descriptionMACTV.addTextChangedListener(new TextWatcher() {
-
+        mTextWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
@@ -148,30 +153,30 @@ public class AddContentActivity extends AppCompatActivity {
                 String text = descriptionMACTV.getText().toString();
                 int len = text.length();
                 //Log.i("TESTING %%%%", text+" "+len+" " +previousDescriptionLength);
-                if(len == 0 || len<previousDescriptionLength) { // to avoid the cases deletion by user
+                if (len == 0 || len < previousDescriptionLength) { // to avoid the cases deletion by user
                     previousDescriptionLength = len;
                     return;
                 }
-                int lastIndex = len-1;
-                if( len - previousDescriptionLength == 1){
+                int lastIndex = len - 1;
+                if (len - previousDescriptionLength == 1) {
                     // case of typed character
                     // just check the last character inputted, if its a space then extract last word
                     int secondLastIndex;
-                    if(text.charAt(lastIndex) == ' '){
-                        secondLastIndex = lastIndex-1;
+                    if (text.charAt(lastIndex) == ' ') {
+                        secondLastIndex = lastIndex - 1;
                         // for the case when space is pressed consecutively
                         // if last inputted character was space then don't do anything
-                        if(lastIndex>0 && !Character.isWhitespace(text.charAt(secondLastIndex)))
+                        if (lastIndex > 0 && !Character.isWhitespace(text.charAt(secondLastIndex)))
                             extractWordAndAddTag(text, secondLastIndex);
                     }
-                }else{
+                } else {
                     // case of pasted text -- extract all the words from string and add as tag
                     // it is taken care of that the already added tags are not added again
                     // ****###&&&*****   misses the test case when there is already some text in the description box and user replaces that text
                     // by pasting some different text whose length is 1 more than the length of previous text.
                     int i = lastIndex;
-                    while(i >= 0 ){
-                        if(!Character.isWhitespace(text.charAt(i)))
+                    while (i >= 0) {
+                        if (!Character.isWhitespace(text.charAt(i)))
                             i = extractWordAndAddTag(text, i);
 
                         i--;
@@ -189,33 +194,45 @@ public class AddContentActivity extends AppCompatActivity {
              * @param lastIndex the index of the last character of the word to be extracted
              * @return returns the starting index of the extracted word
              */
-            public int extractWordAndAddTag(String text, int lastIndex){
+            public int extractWordAndAddTag(String text, int lastIndex) {
                 int i, startIndex;
 
                 i = lastIndex;
-                while(i>0 && text.charAt(i)!=' ')
+                while (i > 0 && text.charAt(i) != ' ')
                     i--;
-                if(i==0)
+                if (i == 0)
                     startIndex = i;
                 else
-                    startIndex = i+1;
-                String word = text.subSequence(startIndex, lastIndex+1).toString();
+                    startIndex = i + 1;
+                String word = text.subSequence(startIndex, lastIndex + 1).toString();
 
-                if(removedTags.get(word) == null)
+                if (removedTags.get(word) == null)
                     addTagInContainer(word);
 
                 return startIndex;
             }
+        };
+        descriptionMACTV.addTextChangedListener(mTextWatcher);
 
+
+        addContentButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addContentCheck(v);
+            }
         });
+
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
 
         String sharedText;
-        Integer mode = (Integer) bundle.get("EXTRA_MODE");
-        if (mode != null)        //explicit intent
-            mMode = mode;
-        else {                    //implicit intent
+        intent.getIntExtra(EXTRA_MODE, 0);
+        mMode = (Integer) bundle.get("EXTRA_MODE");
+
+//        if (mMode != null)        //explicit intent
+//            mMode = EXTRA_MODE_FILE_SHARE
+
+        if (mMode == null) {                    //implicit intent
             // if the intent contains EXTRA_TEXT then it is a text intent only and does not contains a file
             sharedText = (String) bundle.getCharSequence(Intent.EXTRA_TEXT);
             if (sharedText != null)
@@ -250,6 +267,41 @@ public class AddContentActivity extends AppCompatActivity {
                     startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
                 }
             }
+        } else if (mMode == EXTRA_MODE_EDIT_CONTENT) {
+            long sCID = intent.getLongExtra(EXTRA_CONTENT_ID, 0);
+            SmartContent sC = dbHandler.getSmartContentHash().get(sCID);
+            fileNameEditText.setText(sC.getContentName());
+
+            descriptionMACTV.removeTextChangedListener(mTextWatcher);
+            descriptionMACTV.setText(sC.getContentDescription());
+            descriptionMACTV.addTextChangedListener(mTextWatcher);
+
+            ArrayList<Tag> associatedTags = sC.getAssociatedTags();
+            for(Tag tag: associatedTags){
+
+                addTagInContainer(tag.getTagName());
+
+            }
+
+            String descText = sC.getContentDescription();
+            String[] splitStr = descText.split("\\s+");
+            for(String word: splitStr){
+                if(addedTags.get(word) == null){
+                    removedTags.put(word, true);
+                }
+            }
+
+            ArrayAdapter<ContentTypeEnum> spinnerAdapter = (ArrayAdapter) contentCategorySpinner.getAdapter();
+            contentCategorySpinner.setSelection(spinnerAdapter.getPosition(sC.getContentUnit().getContentType()));
+            contentCategorySpinner.setEnabled(false);
+            addContentButton.setText("Save");
+            addContentButton.setOnClickListener(null);
+            addContentButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    editContent();
+                }
+            });
         }
         // else implicit intent
         else {
@@ -323,7 +375,7 @@ public class AddContentActivity extends AppCompatActivity {
                     @Override
                     public void afterTextChanged(Editable s) {
                         String fileName = s.toString();
-                        if(isFilenameValid(fileName)){
+                        if (isFilenameValid(fileName)) {
                             String extension = getExtensionFromName(fileName);
 
                             ContentTypeEnum filetype = dbHandler.fileExtensionHash.get(extension);
@@ -353,41 +405,98 @@ public class AddContentActivity extends AppCompatActivity {
         }
 
 
-//        tagAutoCompleteTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                addTagButton.performClick();
-//            }
-//        });
-//
-//        tagAutoCompleteTextView.addTextChangedListener(new TextWatcher() {
-//            @Override
-//            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-//
-//            }
-//
-//            @Override
-//            public void onTextChanged(CharSequence s, int start, int before, int count) {
-//
-//            }
-//
-//            @Override
-//            public void afterTextChanged(Editable s) {
-//                if (s.length() > 2 && s.charAt(s.length() - 1) == '\n') {
-//                    tagAutoCompleteTextView.setText(s.toString().toCharArray(), 0, s.length() - 1);
-//                    addTagButton.performClick();
-//                }
-//            }
-//        });
-
-
-
-//        ArrayAdapter<String> autoCompleteAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);
-//        tagAutoCompleteTextView.setThreshold(1);
-//        tagAutoCompleteTextView.setAdapter(autoCompleteAdapter);
-
         // command to trigger textchanged event for determination of filetype
         fileNameEditText.setText(fileNameEditText.getText());
+
+    }
+
+
+    // called on pressing the save button in edit content mode
+    private void editContent() {
+        Intent intent = getIntent();
+        long currentSCID = intent.getLongExtra(EXTRA_CONTENT_ID, 0);
+
+        final long contentID = getIntent().getLongExtra(EXTRA_CONTENT_ID, 0);
+        final String fileName = fileNameEditText.getText().toString().trim();
+        final String contentDescription = descriptionMACTV.getText().toString();
+
+        if (!isFilenameValid(fileName)) {
+            Toast.makeText(getApplicationContext(), "please enter valid file name", Toast.LENGTH_SHORT);
+            return;
+        }
+
+        String dialogBoxMessage = new String();
+        for (int i = 0; i < tagContainer.getChildCount(); i++) {
+            LinearLayout ll = (LinearLayout) tagContainer.getChildAt(i);
+            TextView tv = (TextView) ll.getChildAt(0);
+            CheckBox cb = (CheckBox) ll.getChildAt(2);
+
+            String tag = tv.getText().toString();
+            long tagId = dbHandler.isTagPresent(tag);
+
+            Tag tagReference;
+            if(tagId != -1) { // pre-existing tag
+                tagReference = dbHandler.tagHash.get(tagId);
+
+                //special condition, if tag has only one associated content which is being edited now,
+                // then do not list it as contents that will be deleted
+                if(tagReference.getAssociatedContent().size()==1 && tagReference.getAssociatedContent().get(0).getContentID()==currentSCID)
+                    continue;
+                if (cb.isChecked() && tagId != -1 && !tagReference.getAssociatedContent().isEmpty()) {   //user has marked tag as unique
+                    dialogBoxMessage = dialogBoxMessage.concat(tagReference.getTagName() + " : \n");
+                    for (SmartContent sC : tagReference.getAssociatedContent()) {
+                        if (sC.getContentID() != currentSCID)
+                            dialogBoxMessage = dialogBoxMessage.concat("\t" + sC.getContentName() + "\n");
+                    }
+                }
+            }
+
+        }
+
+
+        for (int i = 0; i < tagContainer.getChildCount(); i++) {
+            LinearLayout ll = (LinearLayout) tagContainer.getChildAt(i);
+            TextView tv = (TextView) ll.getChildAt(0);
+            CheckBox cb = (CheckBox) ll.getChildAt(2);
+
+            String tag = tv.getText().toString();
+
+            mfileTags.add(tag);
+            if (cb.isChecked())
+                mfileTagsUniqueness.add(true);
+            else
+                mfileTagsUniqueness.add(false);
+
+        }
+
+
+        if (!dialogBoxMessage.isEmpty()) {
+
+            final AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+            alertDialog.setTitle("DELETE following content. Continue?");
+            alertDialog.setMessage(dialogBoxMessage);
+            alertDialog.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                    dbHandler.editContent(contentID, fileName, contentDescription, mfileTags, mfileTagsUniqueness);
+
+                }
+            });
+            alertDialog.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            alertDialog.setIcon(android.R.drawable.ic_dialog_alert);
+            alertDialog.setCancelable(false);
+            alertDialog.show();
+        } else {
+            dbHandler.editContent(contentID, fileName, contentDescription, mfileTags, mfileTagsUniqueness);
+        }
+
+        finish();
 
     }
 
@@ -406,6 +515,7 @@ public class AddContentActivity extends AppCompatActivity {
      * method called on clicking the add file button.
      * this function checks for the Storage state and for Unique tags property,
      * that if adding this file will replace pre-existing files and displays the conformation dialog box with details.
+     *
      * @param view
      */
     public void addContentCheck(View view) {
@@ -424,17 +534,17 @@ public class AddContentActivity extends AppCompatActivity {
             String tag = tv.getText().toString();
             long tagId = dbHandler.isTagPresent(tag);
 
-            if(cb.isChecked() && tagId != -1 && !dbHandler.tagHash.get(tagId).getAssociatedContent().isEmpty()){    // pre existing tag and user has marked it as unique
+            if (cb.isChecked() && tagId != -1 && !dbHandler.tagHash.get(tagId).getAssociatedContent().isEmpty()) {    // pre existing tag and user has marked it as unique
                 Tag tagObject = dbHandler.tagHash.get(tagId);
-                dialogBoxMessage = dialogBoxMessage.concat(tagObject.getTagName()+" : ");
-                for(SmartContent sC: tagObject.getAssociatedContent()){
-                    dialogBoxMessage = dialogBoxMessage.concat("\n\t"+sC.getContentName());
+                dialogBoxMessage = dialogBoxMessage.concat(tagObject.getTagName() + " : \n");
+                for (SmartContent sC : tagObject.getAssociatedContent()) {
+                    dialogBoxMessage = dialogBoxMessage.concat("\t" + sC.getContentName() + "\n");
                 }
             }
 
         }
 
-        if(!dialogBoxMessage.isEmpty()){
+        if (!dialogBoxMessage.isEmpty()) {
 
             final AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
             alertDialog.setTitle("DELETE following content. Continue?");
@@ -455,13 +565,13 @@ public class AddContentActivity extends AppCompatActivity {
             alertDialog.setIcon(android.R.drawable.ic_dialog_alert);
             alertDialog.setCancelable(false);
             alertDialog.show();
-        }else{
+        } else {
             addFile();
         }
 
     }
 
-    public void addFile(){
+    public void addFile() {
 
         for (int i = 0; i < tagContainer.getChildCount(); i++) {
             LinearLayout ll = (LinearLayout) tagContainer.getChildAt(i);
@@ -483,13 +593,12 @@ public class AddContentActivity extends AppCompatActivity {
         String fileName = fileNameEditText.getText().toString().trim();
         String contentDescription = descriptionMACTV.getText().toString();
         if (contentType == ContentTypeEnum.Note || isFilenameValid(fileName)) {
-            if (contentType == ContentTypeEnum.Note){
+            if (contentType == ContentTypeEnum.Note) {
                 fileName = fileName.concat(".txt");
-            }
-            else{
-            String extension = getExtensionFromName(fileName);
+            } else {
+                String extension = getExtensionFromName(fileName);
 
-            // if the fileType extension in new and user has selected filetype category other than "Other" then save it in database
+                // if the fileType extension in new and user has selected filetype category other than "Other" then save it in database
 
                 if (dbHandler.fileExtensionHash.get(extension) == null) {
                     if (contentType != ContentTypeEnum.Other)
@@ -510,7 +619,7 @@ public class AddContentActivity extends AppCompatActivity {
     }
 
     private String getExtensionFromName(String fileName) {
-        return fileName.substring(fileName.lastIndexOf(".")+1);
+        return fileName.substring(fileName.lastIndexOf(".") + 1);
     }
 
 //    // function called on clicking the add tag searchButton
@@ -554,14 +663,14 @@ public class AddContentActivity extends AppCompatActivity {
                 return;
             LayoutInflater li = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             LinearLayout ll = (LinearLayout) li.inflate(R.layout.tag_item_with_choice, tagContainer, false);
-            Button removeButton = (Button)ll.findViewById(R.id.remove_tag_button);
+            Button removeButton = (Button) ll.findViewById(R.id.remove_tag_button);
             removeButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    LinearLayout ll = (LinearLayout)v.getParent();
+                    LinearLayout ll = (LinearLayout) v.getParent();
                     TextView tv = (TextView) ll.getChildAt(0);
                     removedTags.put(tv.getText().toString(), true);
-                    tagContainer.removeView((View)v.getParent());
+                    tagContainer.removeView((View) v.getParent());
                 }
             });
             long tagId = dbHandler.isTagPresent(tagName);
@@ -576,13 +685,13 @@ public class AddContentActivity extends AppCompatActivity {
             }
             TextView tv = (TextView) ll.getChildAt(0);
             tv.setText(tagName);
-            tagContainer.addView(ll, 0 );
+            tagContainer.addView(ll, 0);
         }
 
     }
 
-    public boolean isFilenameValid(String name){
-        if(name.length()>3 && name.lastIndexOf(".")>0 && name.lastIndexOf(".") < name.length()-1)
+    public boolean isFilenameValid(String name) {
+        if (name.length() > 3 && name.lastIndexOf(".") > 0 && name.lastIndexOf(".") < name.length() - 1)
             return true;
         return false;
     }

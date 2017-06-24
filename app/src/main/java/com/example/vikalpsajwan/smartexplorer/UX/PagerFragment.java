@@ -1,18 +1,22 @@
 package com.example.vikalpsajwan.smartexplorer.UX;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
-import android.text.util.Linkify;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.MimeTypeMap;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.vikalpsajwan.smartexplorer.R;
@@ -23,8 +27,6 @@ import com.example.vikalpsajwan.smartexplorer.models.Tag;
 
 import java.io.File;
 import java.util.ArrayList;
-
-import static com.example.vikalpsajwan.smartexplorer.R.id.noteTextView;
 
 
 /**
@@ -61,23 +63,24 @@ public class PagerFragment extends Fragment {
         dbHandler = DatabaseHandler.getDBInstance(getContext());
 
 
+
         ImageView sContentThumb;
         ImageView sContentThumbOverlay;
         TextView noteTV;
-
+        FrameLayout clickableFrame;
 
         // Get the arguments that was supplied when
         // the fragment was instantiated in the
         // CustomPagerAdapter
         Bundle args = getArguments();
         long contentID = args.getLong("ContentID");
-        SmartContent sC = dbHandler.getSmartContentHash().get(contentID);
+        final SmartContent sC = dbHandler.getSmartContentHash().get(contentID);
 
 
         sContentThumb = (ImageView)rootView.findViewById(R.id.smart_content_thumb);
         sContentThumbOverlay = (ImageView)rootView.findViewById(R.id.smart_content_thumb_overlay);
         noteTV = (TextView)rootView.findViewById(R.id.note_text_view);
-
+        clickableFrame = (FrameLayout)rootView.findViewById(R.id.clickable_frame);
         noteTV.setVisibility(View.INVISIBLE);
 
         Glide.clear(sContentThumb);
@@ -97,7 +100,6 @@ public class PagerFragment extends Fragment {
                         .load(new File(sC.getContentUnit().getContentAddress()))
                         .thumbnail(0.1f)
                         .fitCenter()
-                        .centerCrop()
                         .into(sContentThumb);
                 if( ContentType == ContentTypeEnum.Video){
                     sContentThumbOverlay.setVisibility(View.VISIBLE);
@@ -106,8 +108,11 @@ public class PagerFragment extends Fragment {
             }
             else if(ContentType == ContentTypeEnum.Note){
                 noteTV.setVisibility(View.VISIBLE);
-                noteTV.setText(dbHandler.getTextContent().get(sC.getContentID()).getContentText());
-                Linkify.addLinks(noteTV, Linkify.ALL);
+                noteTV.setText(dbHandler.getTextContentHash().get(sC.getContentID()).getContentText());
+                // not using linkify because it is interfaring with the onClickListener of FrameLayout
+                // and click on FrameLayout is not working.
+                // Todo: another way could be to use linkify and give user a chance to edit text in edit option in toolbar
+//              Linkify.addLinks(noteTV, Linkify.ALL);
             }
             else {
                 if (ContentType == ContentTypeEnum.Audio) {
@@ -141,6 +146,40 @@ public class PagerFragment extends Fragment {
                 sContentTagContainer.addView(tagTV);
             }
         }
+
+
+
+
+
+
+
+        clickableFrame.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent;
+                ContentTypeEnum contentType = sC.getContentUnit().getContentType();
+
+                if (contentType == ContentTypeEnum.Note || contentType == ContentTypeEnum.Location) {
+                    intent = new Intent(getContext(), ViewNoteActivity.class);
+                    intent.putExtra(ViewNoteActivity.EXTRA_CONTENT_ID, sC.getContentID());
+
+                } else {
+                    File file = new File(sC.getContentUnit().getContentAddress());
+                    Uri uri = Uri.fromFile(file);
+                    intent = new Intent(Intent.ACTION_VIEW, uri);
+                    String extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
+                    String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
+                    intent.setDataAndType(uri, mimeType);
+                }
+
+                try {
+                    startActivity(intent);
+                } catch (ActivityNotFoundException e) {
+                    Toast.makeText(getContext(), "No suitable app found!!", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
 
         return rootView;
     }

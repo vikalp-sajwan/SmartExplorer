@@ -32,7 +32,7 @@ public class CopyFileUtility extends AsyncTask<Uri, Void, Void> {
     private ArrayList<String> tagNames;
     private ArrayList<Boolean> tagsUniqueness;
     private String contentName;
-    private int mode;
+    private Integer mode;
     private ContentTypeEnum contentType;
     private File mDest;
     private SmartContent sC;    // this object will not have the contentId and contentAddress and needs to be updated in this class
@@ -81,7 +81,7 @@ public class CopyFileUtility extends AsyncTask<Uri, Void, Void> {
 
         // if content is of type text then copy its text in in-memory textContentHashMap structure
         String contentText = new String();
-        HashMap<Long, TextContent> textContentHashMap = dbHandler.getTextContent();
+        HashMap<Long, TextContent> textContentHashMap = dbHandler.getTextContentHash();
         if (sC.getContentUnit().getContentType() == ContentTypeEnum.Note
                 || sC.getContentUnit().getContentType() == ContentTypeEnum.Location) {
             File file = new File(sC.getContentUnit().getContentAddress());
@@ -129,7 +129,7 @@ public class CopyFileUtility extends AsyncTask<Uri, Void, Void> {
 
                     ArrayList<SmartContent> associatedFiles = tag.getAssociatedContent();
                     while(associatedFiles.size()!=0){
-                        dbHandler.deleteSmartContent(associatedFiles.get(0));
+                        dbHandler.deleteSmartContent(associatedFiles.get(0).getContentID());
                     }
 
                     // update in memory

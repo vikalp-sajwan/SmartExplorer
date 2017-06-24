@@ -57,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
     //AutoCompleteTextView actvTag;
     //Button searchButton;
     private DatabaseHandler dbHandler;
+    boolean isActivityVisible;
+    boolean isDataSetChanged;
 
     // Our handler for received Intents. This will be called whenever an Intent
     // with an action named "dbUpdated" is broadcasted.
@@ -65,22 +67,26 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             String message = intent.getStringExtra("message");
             Log.d("receiver", "Got message: " + message);
-            populateRecentContent();
-            populateTags();
+            if(isActivityVisible) {
+//                updateRecentContent();
+                populateRecentContent();
+                populateTags();
+            }
+            else
+                isDataSetChanged = true;
         }
     };
     //     Toolbar
     private Toolbar mToolbar;
+
 
     /**
      * Dispatch onPause() to fragments.
      */
     @Override
     protected void onPause() {
-        // Unregister since the activity is about to be closed.
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mdbUpdateReceiver);
-
         super.onPause();
+        isActivityVisible = false;
     }
 
     /**
@@ -94,13 +100,24 @@ public class MainActivity extends AppCompatActivity {
      */
     @Override
     protected void onResume() {
-        // Register to receive messages.
-        // We are registering an observer (mMessageReceiver) to receive Intents
-        // with actions named "custom-event-name".
-        LocalBroadcastManager.getInstance(this).registerReceiver(mdbUpdateReceiver,
-                new IntentFilter("dbUpdated"));
         super.onResume();
+        isActivityVisible = true;
+        if(isDataSetChanged){
+//            updateRecentContent();
+            populateRecentContent();
+            populateTags();
+            isDataSetChanged=false;
+        }
     }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Unregister since the activity is about to be closed.
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mdbUpdateReceiver);
+    }
+
 
     /**
      * Initialize the contents of the Activity's standard options menu.  You
@@ -176,6 +193,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         //setting up the toolbar
 //        myToolbar = (Toolbar) findViewById(R.id.main_toolbar);
 //        setSupportActionBar(myToolbar);
@@ -215,6 +233,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+        // Register to receive messages.
+        // We are registering an observer (mMessageReceiver) to receive Intents
+        // with actions named "dbUpdated".
+        LocalBroadcastManager.getInstance(this).registerReceiver(mdbUpdateReceiver,
+                new IntentFilter(DatabaseHandler.DB_UPDATED));
+
     }
 
 
@@ -248,8 +272,8 @@ public class MainActivity extends AppCompatActivity {
                     dialog.dismiss();
                     AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
                     SmartContent sC = sCData.get(info.position);
-                    flaa.remove(sC);
-                    dbHandler.deleteSmartContent(sC);
+                    //flaa.remove(sC);
+                    dbHandler.deleteSmartContent(sC.getContentID());
                 }
             });
             alertDialog.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -291,6 +315,12 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void updateRecentContent(){
+        sCData = dbHandler.getRecentContentData();
+        flaa.notifyDataSetChanged();
+
+    }
+
     /**
      * method to load and populate the recent 7 contents in a list
      */
@@ -310,23 +340,6 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent;
 
-//                ContentTypeEnum contentType = sCData.get(position).getContentUnit().getContentType();
-
-//                if (contentType == ContentTypeEnum.Note || contentType == ContentTypeEnum.Location) {
-////                    intent = new Intent(getApplicationContext(), ViewNoteActivity.class);
-//                    intent = new Intent(getApplicationContext(), ViewContentActivity.class);
-//
-//                    intent.putExtra(ViewContentActivity.EXTRA_CURRENT_CONTENT_INDEX, sCData.get(position));
-//                } else {
-//                    File file = new File(sCData.get(position).getContentUnit().getContentAddress());
-//                    Uri uri = Uri.fromFile(file);
-//                    intent = new Intent(Intent.ACTION_VIEW, uri);
-//                    String extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
-//                    String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
-//                    intent.setDataAndType(uri, mimeType);
-//                }
-
-                intent = new Intent(getApplicationContext(), ViewNoteActivity.class);
                     intent = new Intent(getApplicationContext(), ViewContentActivity.class);
                     intent.putExtra(ViewContentActivity.EXTRA_CONTENT_ARRAYLIST, sCData);
                     intent.putExtra(ViewContentActivity.EXTRA_CURRENT_CONTENT_INDEX, position);
@@ -471,7 +484,7 @@ public class MainActivity extends AppCompatActivity {
      */
     public void captureImage() {
         Intent intent = new Intent(this, AddContentActivity.class);
-        intent.putExtra("EXTRA_MODE", AddContentActivity.EXTRA_MODE_IMAGE_CAPTURE);
+        intent.putExtra(AddContentActivity.EXTRA_MODE, AddContentActivity.EXTRA_MODE_IMAGE_CAPTURE);
         startActivity(intent);
     }
 

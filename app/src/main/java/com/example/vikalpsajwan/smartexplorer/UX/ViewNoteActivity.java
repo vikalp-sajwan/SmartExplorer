@@ -29,7 +29,7 @@ public class ViewNoteActivity extends AppCompatActivity {
         setContentView(R.layout.activity_view_note);
 
         noteTextView = (TextView)findViewById(R.id.noteTextView);
-        noteTextView.setText(dbHandler.getTextContent().get(contentId).getContentText());
+        noteTextView.setText(dbHandler.getTextContentHash().get(contentId).getContentText());
         Linkify.addLinks(noteTextView, Linkify.ALL);
     }
 }

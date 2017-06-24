@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.view.ViewGroup;
 
 import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
 
@@ -47,6 +48,28 @@ public class CustomPagerAdapter extends FragmentStatePagerAdapter {
         fragment.setArguments(args);
 
         return fragment;
+    }
+
+
+
+    /**
+     * Called when the host view is attempting to determine if an item's position
+     * has changed. Returns {@link #POSITION_UNCHANGED} if the position of the given
+     * item has not changed or {@link #POSITION_NONE} if the item is no longer present
+     * in the adapter.
+     * <p>
+     * <p>The default implementation assumes that items will never
+     * change position and always returns {@link #POSITION_UNCHANGED}.
+     *
+     * @param object Object representing an item, previously returned by a call to
+     *               {@link #instantiateItem(View, int)}.
+     * @return object's new position index from [0, {@link #getCount()}),
+     * {@link #POSITION_UNCHANGED} if the object's position has not changed,
+     * or {@link #POSITION_NONE} if the item is no longer present.
+     */
+    @Override
+    public int getItemPosition(Object object) {
+        return POSITION_NONE;
     }
 
     @Override
