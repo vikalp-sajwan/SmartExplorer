@@ -331,7 +331,10 @@ public class FilesListActivity extends AppCompatActivity {
                 Intent intent;
 
                 intent = new Intent(getApplicationContext(), ViewContentActivity.class);
-                intent.putExtra(ViewContentActivity.EXTRA_CONTENT_ARRAYLIST, sCData);
+                long[] contentIDArray = new long[sCData.size()];
+                for(int i = 0; i<sCData.size(); i++)
+                    contentIDArray[i] = sCData.get(i).getContentID();
+                intent.putExtra(ViewContentActivity.EXTRA_CONTENT_ID_ARRAY, contentIDArray);
                 intent.putExtra(ViewContentActivity.EXTRA_CURRENT_CONTENT_INDEX, position);
 
                 try{

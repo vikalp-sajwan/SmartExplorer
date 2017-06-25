@@ -9,7 +9,7 @@ import java.util.ArrayList;
  * Created by amitjha on 3/18/2017.
  */
 
-public class Tag implements Serializable{
+public class Tag{
     private boolean isUniqueContent;
     private long tagId;
     private String tagName;

@@ -7,7 +7,7 @@ import java.util.ArrayList;
  * Created by amitjha on 3/18/2017.
  */
 
-public class SmartContent implements Serializable{
+public class SmartContent{
 
 
     private long contentID;

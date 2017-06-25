@@ -874,7 +874,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         for(int i =0; i<newTags.size(); i++){
             long tagID = isTagPresent(newTags.get(i));
 
-            if(tagID == -1)     // not present - create tag in tag table and add entry in contentTag table
+            if(tagID == -1 )     // not present - create tag in tag table and add entry in contentTag table
             {
                 cv = new ContentValues();
                 cv.put(DatabaseHandler.coltagName, newTags.get(i));
@@ -887,6 +887,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             }
             else{
                 Tag tag = tagHash.get(tagID);
+
 
                 // if already present tag was unique and now it is changed to notUnique
                 // just change the uniqueness of tag in tag table
@@ -903,7 +904,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                     // if it was not unique and is still same, then do nothing
                     // do not delete the current smartContent
                     ArrayList<SmartContent> associatedFiles = tag.getAssociatedContent();
-                    while(associatedFiles.size()!=1){
+                    while(associatedFiles.size()>1){
                         if(associatedFiles.get(0).getContentID()!=sC.getContentID())
                             dbHandler.deleteSmartContent(associatedFiles.get(0).getContentID());
                         else

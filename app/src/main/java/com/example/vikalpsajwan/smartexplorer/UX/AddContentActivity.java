@@ -28,6 +28,7 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -481,6 +482,10 @@ public class AddContentActivity extends AppCompatActivity {
                     dialog.dismiss();
                     dbHandler.editContent(contentID, fileName, contentDescription, mfileTags, mfileTagsUniqueness);
 
+
+
+                    finish();
+
                 }
             });
             alertDialog.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -494,9 +499,16 @@ public class AddContentActivity extends AppCompatActivity {
             alertDialog.show();
         } else {
             dbHandler.editContent(contentID, fileName, contentDescription, mfileTags, mfileTagsUniqueness);
+
+            //hide keyboard before finish for smooth transition
+            View focused = getCurrentFocus();
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);   // to show/hide keyboard
+            imm.hideSoftInputFromWindow(focused.getWindowToken(), 0);
+
+            finish();
         }
 
-        finish();
+
 
     }
 
@@ -612,6 +624,7 @@ public class AddContentActivity extends AppCompatActivity {
             copyUtil = new CopyFileUtility(getApplicationContext(), sC, mfileTags, mfileTagsUniqueness, mMode);
             // start background task and finish UI activity
             copyUtil.execute(mUri);
+
 
             this.finish();
         } else

@@ -29,13 +29,14 @@ import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Created by Vikalp on 20/06/2017.
  */
 
 public class ViewContentActivity extends AppCompatActivity {
-    public static final String EXTRA_CONTENT_ARRAYLIST = "ContentArrayList";
+    public static final String EXTRA_CONTENT_ID_ARRAY = "ContentIDArray";
     //     Toolbar
     private Toolbar mToolbar;
     DatabaseHandler dbHandler;
@@ -44,6 +45,7 @@ public class ViewContentActivity extends AppCompatActivity {
     TextView contentTitleTV;
     ArrayList<SmartContent> scData;
     CustomPagerAdapter mCustomPagerAdapter;
+    Context mContext;
 
 
     public static final String EXTRA_CURRENT_CONTENT_INDEX = "CurrentContentIndex";
@@ -59,11 +61,32 @@ public class ViewContentActivity extends AppCompatActivity {
             String message = intent.getStringExtra("message");
             Log.d("receiver", "Got message: " + message);
             if(isActivityVisible) {
+//                updateRecentContent();
+                int currentPosition = mViewPager.getCurrentItem();
+                long currentContentID = scData.get(currentPosition).getContentID();
+                ArrayList<SmartContent> oldData = scData;
+                scData = new ArrayList<>();
+                HashMap<Long, SmartContent> smartContentHashMap = dbHandler.getSmartContentHash();
+                int newPosition = 0;
+
+                for(SmartContent sc: oldData){
+                    if(smartContentHashMap.get(sc.getContentID())!= null){
+                        scData.add(smartContentHashMap.get(sc.getContentID()));
+                        if(sc.getContentID() == currentContentID)
+                            newPosition = scData.size()-1;
+                    }
+                }
+
                 mCustomPagerAdapter.notifyDataSetChanged();
-                int position = mViewPager.getCurrentItem();
+                mCustomPagerAdapter = new CustomPagerAdapter(getSupportFragmentManager(), mContext, scData);
+
+
+                mViewPager.setAdapter(mCustomPagerAdapter);
                 // update the current smart content reference
-                scData.set(position, dbHandler.getSmartContentHash().get(scData.get(position).getContentID()));
-                contentTitleTV.setText(scData.get(position).getContentName());
+//            scData.set(position, dbHandler.getSmartContentHash().get(scData.get(position).getContentID()));
+                contentTitleTV.setText(scData.get(newPosition).getContentName());
+                mViewPager.setCurrentItem(newPosition);
+
 
             }
             else
@@ -95,11 +118,32 @@ public class ViewContentActivity extends AppCompatActivity {
         isActivityVisible = true;
         if(isDataSetChanged){
 //            updateRecentContent();
+            int currentPosition = mViewPager.getCurrentItem();
+            long currentContentID = scData.get(currentPosition).getContentID();
+            ArrayList<SmartContent> oldData = scData;
+            scData = new ArrayList<>();
+            HashMap<Long, SmartContent> smartContentHashMap = dbHandler.getSmartContentHash();
+            int newPosition = 0;
+
+            for(SmartContent sc: oldData){
+                if(smartContentHashMap.get(sc.getContentID())!= null){
+                    scData.add(smartContentHashMap.get(sc.getContentID()));
+                    if(sc.getContentID() == currentContentID)
+                        newPosition = scData.size()-1;
+                }
+            }
+
             mCustomPagerAdapter.notifyDataSetChanged();
-            int position = mViewPager.getCurrentItem();
+            mCustomPagerAdapter = new CustomPagerAdapter(getSupportFragmentManager(), this, scData);
+
+
+            mViewPager.setAdapter(mCustomPagerAdapter);
             // update the current smart content reference
-            scData.set(position, dbHandler.getSmartContentHash().get(scData.get(position).getContentID()));
-            contentTitleTV.setText(scData.get(position).getContentName());
+//            scData.set(position, dbHandler.getSmartContentHash().get(scData.get(position).getContentID()));
+            contentTitleTV.setText(scData.get(newPosition).getContentName());
+
+            mViewPager.setCurrentItem(newPosition);
+
             isDataSetChanged=false;
         }
     }
@@ -123,7 +167,7 @@ public class ViewContentActivity extends AppCompatActivity {
 
 
         dbHandler = DatabaseHandler.getDBInstance(getApplicationContext());
-
+        mContext = this;
 
         mActionBar = getSupportActionBar(); //get the actionbar
 
@@ -139,7 +183,11 @@ public class ViewContentActivity extends AppCompatActivity {
 
         // get the tag id from intent which was clicked
         Intent intent = this.getIntent();
-        scData = (ArrayList<SmartContent>)intent.getSerializableExtra(EXTRA_CONTENT_ARRAYLIST);
+        long[] smartContentIDArray = intent .getLongArrayExtra(EXTRA_CONTENT_ID_ARRAY);
+        scData = new ArrayList<>();
+        for(long contentId: smartContentIDArray){
+            scData.add(dbHandler.getSmartContentHash().get(contentId));
+        }
         int currentContentIndex = intent.getIntExtra(EXTRA_CURRENT_CONTENT_INDEX, 0);
 
 
