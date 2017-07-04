@@ -57,7 +57,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
-import static android.R.attr.mode;
 import static android.widget.Toast.LENGTH_LONG;
 
 /**
@@ -88,12 +87,12 @@ public class AddContentActivity extends AppCompatActivity {
     Spinner contentCategorySpinner;
     SpaceMultiAutoCompleteTextView descriptionMACTV;
     // HashMap of once removed tags by user and which are to be avoided when typed again in same session
-    HashMap<String, Boolean> removedTags;
+    HashMap<String, Boolean> mRemovedTags;
     private DatabaseHandler dbHandler;
     private CopyFileUtility copyUtil;
     private TextWatcher mTextWatcher;
     // a variable to keep count of length of text in description box - used in afterTextChanged
-    private int previousDescriptionLength = 0;
+    private int mPrevDescLen = 0;
 
     /**
      * Dispatch incoming result to the correct fragment.
@@ -126,7 +125,7 @@ public class AddContentActivity extends AppCompatActivity {
         contentCategorySpinner = (Spinner) findViewById(R.id.contentCategorySpinner);
         descriptionMACTV = (SpaceMultiAutoCompleteTextView) findViewById(R.id.description_mactv);
 
-        removedTags = new HashMap<String, Boolean>();
+        mRemovedTags = new HashMap<String, Boolean>();
         addedTags = new HashMap<String,Boolean>();
 
         contentCategorySpinner.setAdapter(new ArrayAdapter<ContentTypeEnum>(this, R.layout.file_category_spinner_item, ContentTypeEnum.values()));
@@ -153,13 +152,13 @@ public class AddContentActivity extends AppCompatActivity {
 
                 String text = descriptionMACTV.getText().toString();
                 int len = text.length();
-                //Log.i("TESTING %%%%", text+" "+len+" " +previousDescriptionLength);
-                if (len == 0 || len < previousDescriptionLength) { // to avoid the cases deletion by user
-                    previousDescriptionLength = len;
+                //Log.i("TESTING %%%%", text+" "+len+" " +mPrevDescLen);
+                if (len == 0 || len < mPrevDescLen) { // to avoid the cases deletion by user
+                    mPrevDescLen = len;
                     return;
                 }
                 int lastIndex = len - 1;
-                if (len - previousDescriptionLength == 1) {
+                if (len - mPrevDescLen == 1) {
                     // case of typed character
                     // just check the last character inputted, if its a space then extract last word
                     int secondLastIndex;
@@ -184,7 +183,7 @@ public class AddContentActivity extends AppCompatActivity {
                     }
                 }
 
-                previousDescriptionLength = len;
+                mPrevDescLen = len;
 
             }
 
@@ -207,7 +206,7 @@ public class AddContentActivity extends AppCompatActivity {
                     startIndex = i + 1;
                 String word = text.subSequence(startIndex, lastIndex + 1).toString();
 
-                if (removedTags.get(word) == null)
+                if (mRemovedTags.get(word) == null)
                     addTagInContainer(word);
 
                 return startIndex;
@@ -275,6 +274,7 @@ public class AddContentActivity extends AppCompatActivity {
 
             descriptionMACTV.removeTextChangedListener(mTextWatcher);
             descriptionMACTV.setText(sC.getContentDescription());
+            mPrevDescLen = sC.getContentDescription().length();
             descriptionMACTV.addTextChangedListener(mTextWatcher);
 
             ArrayList<Tag> associatedTags = sC.getAssociatedTags();
@@ -288,7 +288,7 @@ public class AddContentActivity extends AppCompatActivity {
             String[] splitStr = descText.split("\\s+");
             for(String word: splitStr){
                 if(addedTags.get(word) == null){
-                    removedTags.put(word, true);
+                    mRemovedTags.put(word, true);
                 }
             }
 
@@ -682,7 +682,7 @@ public class AddContentActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     LinearLayout ll = (LinearLayout) v.getParent();
                     TextView tv = (TextView) ll.getChildAt(0);
-                    removedTags.put(tv.getText().toString(), true);
+                    mRemovedTags.put(tv.getText().toString(), true);
                     tagContainer.removeView((View) v.getParent());
                 }
             });

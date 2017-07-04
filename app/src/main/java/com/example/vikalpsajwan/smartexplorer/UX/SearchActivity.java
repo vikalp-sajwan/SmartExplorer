@@ -2,15 +2,19 @@ package com.example.vikalpsajwan.smartexplorer.UX;
 
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -55,7 +59,62 @@ public class SearchActivity extends AppCompatActivity {
 
     ArrayList<SmartContent> matchSC;
 
+    boolean isActivityVisible;
+    boolean isDataSetChanged;
+
+    // Our handler for received Intents. This will be called whenever an Intent
+    // with an action named "dbUpdated" is broadcasted.
+    private BroadcastReceiver mdbUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String message = intent.getStringExtra("message");
+            Log.d("receiver", "Got message: " + message);
+            if(isActivityVisible) {
+                prepareSearch();
+            }
+            else
+                isDataSetChanged = true;
+        }
+    };
+
+
 //    private boolean isSearchOpened = false;
+
+    /**
+     * Dispatch onPause() to fragments.
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        isActivityVisible = false;
+    }
+
+    /**
+     * Dispatch onResume() to fragments.  Note that for better inter-operation
+     * with older versions of the platform, at the point of this call the
+     * fragments attached to the activity are <em>not</em> resumed.  This means
+     * that in some cases the previous state may still be saved, not allowing
+     * fragment transactions that modify the state.  To correctly interact
+     * with fragments in their proper state, you should instead override
+     * {@link #onResumeFragments()}.
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        isActivityVisible = true;
+        if(isDataSetChanged){
+            prepareSearch();
+            isDataSetChanged = false;
+        }
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Unregister since the activity is about to be closed.
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mdbUpdateReceiver);
+    }
 
     /**
      * Prepare the Screen's standard options menu to be displayed.  This is
@@ -235,26 +294,46 @@ public class SearchActivity extends AppCompatActivity {
         flaa = new FileListArrayAdapter(this, R.layout.smart_content_list_item, fCData );
         listView.setAdapter(flaa);
         registerForContextMenu(listView);
+//        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                Intent intent;
+//
+//                ContentTypeEnum contentType = fCData.get(position).getContentUnit().getContentType();
+//
+//                if(contentType == ContentTypeEnum.Note || contentType == ContentTypeEnum.Location){
+//                    intent = new Intent(getApplicationContext(), ViewNoteActivity.class);
+//                    intent.putExtra(ViewNoteActivity.EXTRA_CONTENT_ID, fCData.get(position).getContentID());
+//                }
+//                else{
+//                    File file = new File(fCData.get(position).getContentUnit().getContentAddress());
+//                    Uri uri = Uri.fromFile(file);
+//                    intent = new Intent(Intent.ACTION_VIEW, uri);
+//                    String  extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
+//                    String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
+//                    intent.setDataAndType(uri, mimeType);
+//                }
+//
+//
+//                try{
+//                    startActivity(intent);
+//                }
+//                catch (ActivityNotFoundException e){
+//                    Toast.makeText(getApplicationContext(),"No suitable app found!!",Toast.LENGTH_LONG).show();
+//                }
+//            }
+//        });
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent;
 
-                ContentTypeEnum contentType = fCData.get(position).getContentUnit().getContentType();
-
-                if(contentType == ContentTypeEnum.Note || contentType == ContentTypeEnum.Location){
-                    intent = new Intent(getApplicationContext(), ViewNoteActivity.class);
-                    intent.putExtra(ViewNoteActivity.EXTRA_CONTENT_ID, fCData.get(position).getContentID());
-                }
-                else{
-                    File file = new File(fCData.get(position).getContentUnit().getContentAddress());
-                    Uri uri = Uri.fromFile(file);
-                    intent = new Intent(Intent.ACTION_VIEW, uri);
-                    String  extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString());
-                    String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
-                    intent.setDataAndType(uri, mimeType);
-                }
-
+                intent = new Intent(getApplicationContext(), ViewContentActivity.class);
+                long[] contentIDArray = new long[fCData.size()];
+                for(int i = 0; i<fCData.size(); i++)
+                    contentIDArray[i] = fCData.get(i).getContentID();
+                intent.putExtra(ViewContentActivity.EXTRA_CONTENT_ID_ARRAY, contentIDArray);
+                intent.putExtra(ViewContentActivity.EXTRA_CURRENT_CONTENT_INDEX, position);
 
                 try{
                     startActivity(intent);
@@ -389,7 +468,11 @@ public class SearchActivity extends AppCompatActivity {
 
         dbHandler = DatabaseHandler.getDBInstance(getApplicationContext());
 
-
+        // Register to receive messages.
+        // We are registering an observer (mMessageReceiver) to receive Intents
+        // with actions named "dbUpdated".
+        LocalBroadcastManager.getInstance(this).registerReceiver(mdbUpdateReceiver,
+                new IntentFilter(DatabaseHandler.DB_UPDATED));
 //        isSearchOpened = false;
 //        clearText();
 
