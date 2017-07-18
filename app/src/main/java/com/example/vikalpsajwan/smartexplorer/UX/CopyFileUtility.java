@@ -154,6 +154,9 @@ public class CopyFileUtility extends AsyncTask<Uri, Void, Void> {
             }
             // update in memory for tag
             tag.addAssociatedContent(sC);
+
+            // update entry in tagAccess table for the tag
+            dbHandler.updateTagAccess(tagId);
         }
 
         for(long addedTagId: addedTags){

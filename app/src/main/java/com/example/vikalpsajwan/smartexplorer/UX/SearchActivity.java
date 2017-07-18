@@ -267,9 +267,11 @@ public class SearchActivity extends AppCompatActivity {
             // searching in tags for a tag match and then getting all the associated SmartContent if the tag is found
             ArrayList<SmartContent> tagAssocSC;
             long tagId = dbHandler.isTagPresent(words[i_W]);
-            if (tagId >= 0)
+            if (tagId >= 0) {
                 tagAssocSC = dbHandler.getTagHash().get(tagId).getAssociatedContent();
-            else
+                // update entry in tagAccess table
+                dbHandler.updateTagAccess(tagId);
+            }else
                 tagAssocSC = new ArrayList<>();
             for (int i_SC = 0; i_SC < tagAssocSC.size(); i_SC++) {
                 SmartContent sC = tagAssocSC.get(i_SC);

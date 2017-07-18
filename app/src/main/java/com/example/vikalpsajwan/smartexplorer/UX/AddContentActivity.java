@@ -688,7 +688,7 @@ public class AddContentActivity extends AppCompatActivity {
             });
             long tagId = dbHandler.isTagPresent(tagName);
             if (tagId != -1) {
-                // disable the checkbox for already existing tags
+
                 CheckBox cb = (CheckBox) ll.getChildAt(2);
 
                 if (dbHandler.getTagHash().get(tagId).isUniqueContent()) {

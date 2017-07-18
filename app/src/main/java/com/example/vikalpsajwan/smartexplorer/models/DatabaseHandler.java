@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Scanner;
 
+import static android.R.attr.contentDescription;
+
 /**
  * Created by Vikalp on 05/02/2017.
  */
@@ -54,6 +56,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     static final String colContentTypeId = "_id";
     static final String colContentExtension = "colContentExtension";
     static final String colContentCategory = "colContentCategory";
+
+    static final String tagAccessTable = "tagAccess";
+    static final String colTagAccessId = "_id";
+    static final String colTaTagId = "colTaTagId";
+    static final String colTaTimeStamp = "colTaTimeStamp";
 
 //    static final String textTable = "text";
 //    static final String colTextid = "_id";
@@ -196,6 +203,20 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 " INTEGER " +
                 ")"
 
+        );
+
+        // create tagsAccess table
+        db.execSQL("CREATE TABLE " +
+                tagAccessTable +
+                " (" +
+                colTagAccessId +
+                " INTEGER PRIMARY KEY AUTOINCREMENT , " +
+                colTaTagId +
+                " INTEGER ," +
+                colTaTimeStamp +
+                " INTEGER " +
+                "FOREIGN KEY (" + colTaTagId + ") REFERENCES " + tagsTable + "(" + coltagId + ")" +
+                ")"
         );
 
 
@@ -406,6 +427,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             cv.put(DatabaseHandler.colIsUniqueTag, 0);
 
         return db.insert(tagsTable, null, cv);
+
     }
 
     /**
@@ -982,6 +1004,43 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                     words.add(word);
         }
         return words;
+
+    }
+
+    /**
+     * creates a new entry in tagAccess table with current timestamp
+     * one tag can have at most 15 entries
+     * @param tagId
+     */
+    public void updateTagAccess(long tagId){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues cv = new ContentValues();
+        //check if the tag has 15 entries already
+        //if already 15, overwrite the one with oldest timestamp
+        //else insert a new entry
+
+        Cursor cursor = db.rawQuery("SELECT " + colTagAccessId + " FROM "
+                        + tagAccessTable +
+                        " WHERE " + colTaTagId + " = " + tagId +
+                        " ORDER BY " + colTaTimeStamp + " ASC "
+                , null);
+
+        if(cursor.getCount() < 15){
+            cv.put(DatabaseHandler.colTaTagId, tagId);
+            cv.put(DatabaseHandler.colTaTimeStamp, System.currentTimeMillis());
+            db.insert(tagAccessTable, null, cv);
+        }else{
+            cursor.moveToNext();
+            long _id = cursor.getLong(0);
+            cv.put(DatabaseHandler.colTaTimeStamp, System.currentTimeMillis());
+            db.update(DatabaseHandler.tagAccessTable, cv, "_id=" + _id, null);
+        }
+    }
+
+    public ArrayList<SmartContent> getAssociatedContent(long tagId){
+        Tag tag = tagHash.get(tagId);
+        return tag.getAssociatedContent();
 
     }
 
