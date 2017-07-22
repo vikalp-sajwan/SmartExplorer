@@ -32,6 +32,7 @@ import com.example.vikalpsajwan.smartexplorer.models.AndroidDatabaseManager;
 import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
+import com.example.vikalpsajwan.smartexplorer.models.Tag;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -110,6 +111,17 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Dispatch onStart() to all fragments.  Ensure any created loaders are
+     * now started.
+     */
+    @Override
+    protected void onStart() {
+        super.onStart();
+        //#####******  NOT SO IMPORTANT, CAN BE OMITTED
+        dbHandler.updateTagAccessDataFromDB();
+        populateTags();
+    }
 
     @Override
     protected void onDestroy() {
@@ -340,12 +352,18 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent;
 
-                    intent = new Intent(getApplicationContext(), ViewContentActivity.class);
-                    long[] contentIDArray = new long[sCData.size()];
-                    for(int i = 0; i<sCData.size(); i++)
-                        contentIDArray[i] = sCData.get(i).getContentID();
-                    intent.putExtra(ViewContentActivity.EXTRA_CONTENT_ID_ARRAY, contentIDArray);
-                    intent.putExtra(ViewContentActivity.EXTRA_CURRENT_CONTENT_INDEX, position);
+                intent = new Intent(getApplicationContext(), ViewContentActivity.class);
+                long[] contentIDArray = new long[sCData.size()];
+                for(int i = 0; i<sCData.size(); i++)
+                    contentIDArray[i] = sCData.get(i).getContentID();
+                intent.putExtra(ViewContentActivity.EXTRA_CONTENT_ID_ARRAY, contentIDArray);
+                intent.putExtra(ViewContentActivity.EXTRA_CURRENT_CONTENT_INDEX, position);
+
+                //update tag access times of all the associated tags of clicked content
+                SmartContent clickedSC = sCData.get(position);
+                for(Tag tag: clickedSC.getAssociatedTags()){
+                    dbHandler.updateTagAccess(tag.getTagId());
+                }
 
                 try {
                     startActivity(intent);
@@ -356,9 +374,36 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
+    /**
+     * method to fetch tags and process them to calculate ranks for most popular tags
+     * then set the highest scoring 12 tags in tag GridAdapter
+     */
     private void populateTags() {
-        final TagGridAdapter tagGridAdapter = new TagGridAdapter(this, dbHandler.getMostUsedTags());
+        ArrayList<Tag> usedTags = dbHandler.getUsedTags();
+
+        float[] score = new float[usedTags.size()];
+        for(int i = 0 ; i<usedTags.size(); i++){
+            score[i] = dbHandler.getTagScore(usedTags.get(i));
+        }
+
+        ArrayList<Tag> finalTagList = new ArrayList<>();
+
+        for(int i = 0 ; i<12 && i<usedTags.size() ; i++){
+            float max=0.0f;
+            int maxIndex=0;
+            for(int j=0; j<usedTags.size(); j++){
+                if(score[j]>max){
+                    max = score[j];
+                    maxIndex= j;
+                }
+
+            }
+            finalTagList.add(usedTags.get(maxIndex));
+            score[maxIndex] = 0;
+        }
+
+
+        final TagGridAdapter tagGridAdapter = new TagGridAdapter(this, finalTagList );
         tagsGridView.setAdapter(tagGridAdapter);
 
     }

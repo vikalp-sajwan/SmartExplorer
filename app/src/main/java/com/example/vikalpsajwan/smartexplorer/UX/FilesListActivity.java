@@ -37,6 +37,7 @@ import com.example.vikalpsajwan.smartexplorer.R;
 import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
+import com.example.vikalpsajwan.smartexplorer.models.Tag;
 
 import static android.widget.AdapterView.OnItemClickListener;
 
@@ -336,6 +337,12 @@ public class FilesListActivity extends AppCompatActivity {
                     contentIDArray[i] = sCData.get(i).getContentID();
                 intent.putExtra(ViewContentActivity.EXTRA_CONTENT_ID_ARRAY, contentIDArray);
                 intent.putExtra(ViewContentActivity.EXTRA_CURRENT_CONTENT_INDEX, position);
+
+                //update tag access times of all the associated tags of clicked content
+                SmartContent clickedSC = sCData.get(position);
+                for(Tag tag: clickedSC.getAssociatedTags()){
+                    dbHandler.updateTagAccess(tag.getTagId());
+                }
 
                 try{
                     startActivity(intent);

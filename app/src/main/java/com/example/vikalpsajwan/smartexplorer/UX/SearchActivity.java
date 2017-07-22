@@ -37,6 +37,7 @@ import com.example.vikalpsajwan.smartexplorer.models.AndroidDatabaseManager;
 import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
+import com.example.vikalpsajwan.smartexplorer.models.Tag;
 import com.example.vikalpsajwan.smartexplorer.models.TextContent;
 
 import java.io.File;
@@ -336,6 +337,12 @@ public class SearchActivity extends AppCompatActivity {
                     contentIDArray[i] = fCData.get(i).getContentID();
                 intent.putExtra(ViewContentActivity.EXTRA_CONTENT_ID_ARRAY, contentIDArray);
                 intent.putExtra(ViewContentActivity.EXTRA_CURRENT_CONTENT_INDEX, position);
+
+                //update tag access times of all the associated tags of clicked content
+                SmartContent clickedSC = fCData.get(position);
+                for(Tag tag: clickedSC.getAssociatedTags()){
+                    dbHandler.updateTagAccess(tag.getTagId());
+                }
 
                 try{
                     startActivity(intent);

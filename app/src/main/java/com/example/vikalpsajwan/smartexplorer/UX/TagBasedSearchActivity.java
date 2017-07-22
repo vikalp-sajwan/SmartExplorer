@@ -228,11 +228,15 @@ public class TagBasedSearchActivity extends AppCompatActivity {
      * performs all the required operation when user clicks a tag in MainActivity or in TagBasedSearchActivity
     */
      public void performTagAddition(long tagId){
-        addTagToTagChain(tagId);
-        populateContent(tagId);
+
+         //update tag access times of all the associated tags of clicked content
+         dbHandler.updateTagAccess(tagId);
+
+         addTagToTagChain(tagId);
+         populateContent(tagId);
          // populateRelatedTags() has to be called after the populateContent(),
          // as it depends on the new SmartContent generated in populateContent()
-        populateRelatedTags(tagId);
+         populateRelatedTags(tagId);
     }
 
     private void calculateScoreAndSort() {
@@ -261,8 +265,6 @@ public class TagBasedSearchActivity extends AppCompatActivity {
     private void populateRelatedTags(long tagId){
         if (tagId == parentTagId) {
             relatedTags = dbHandler.getRelatedTags(tagId);
-            tagGridAdapter = new TagGridAdapter(this, relatedTags);
-            tagsGridView.setAdapter(tagGridAdapter);
         } else {
             ArrayList<Tag> newRelatedTags = new ArrayList<>();
             Tag clickedTag = dbHandler.getTagHash().get(tagId);
@@ -274,10 +276,38 @@ public class TagBasedSearchActivity extends AppCompatActivity {
                     if(!selectedTags.contains(tag) && !newRelatedTags.contains(tag))
                         newRelatedTags.add(tag);
             }
-
-
             relatedTags = newRelatedTags;
-            tagGridAdapter.changeDataAndNotify(newRelatedTags);
+
+        }
+
+        float[] score = new float[relatedTags.size()];
+        for(int i = 0 ; i<relatedTags.size(); i++){
+            score[i] = dbHandler.getTagScore(relatedTags.get(i));
+        }
+
+        // list of up to 12 tags sorted by rank to display in tag grid
+        ArrayList<Tag> tagGridTagList = new ArrayList<>();
+
+        for(int i = 0 ; i<12 && i<relatedTags.size() ; i++){
+            float max=0.0f;
+            int maxIndex=0;
+            for(int j=0; j<relatedTags.size(); j++){
+                if(score[j]>max){
+                    max = score[j];
+                    maxIndex= j;
+                }
+
+            }
+            tagGridTagList.add(relatedTags.get(maxIndex));
+            score[maxIndex] = 0;
+        }
+
+        if(tagId == parentTagId){
+            tagGridAdapter = new TagGridAdapter(this, tagGridTagList);
+            tagsGridView.setAdapter(tagGridAdapter);
+        }
+        else{
+            tagGridAdapter.changeDataAndNotify(tagGridTagList);
         }
     }
 
@@ -307,6 +337,12 @@ public class TagBasedSearchActivity extends AppCompatActivity {
                         contentIDArray[i] = sCData.get(i).getContentID();
                     intent.putExtra(ViewContentActivity.EXTRA_CONTENT_ID_ARRAY, contentIDArray);
                     intent.putExtra(ViewContentActivity.EXTRA_CURRENT_CONTENT_INDEX, position);
+
+                    //update tag access times of all the associated tags of clicked content
+                    SmartContent clickedSC = sCData.get(position);
+                    for(Tag tag: clickedSC.getAssociatedTags()){
+                        dbHandler.updateTagAccess(tag.getTagId());
+                    }
 
                     try {
                         startActivity(intent);

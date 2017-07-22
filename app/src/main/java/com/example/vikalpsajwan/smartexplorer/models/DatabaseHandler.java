@@ -19,8 +19,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Scanner;
 
-import static android.R.attr.contentDescription;
-
 /**
  * Created by Vikalp on 05/02/2017.
  */
@@ -79,6 +77,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private ArrayList<Tag> tagData;
     // data Structure to store text Content in memory
     private HashMap<Long, TextContent> textContentHash;
+    private HashMap<Long, ArrayList<Long>> tagAccessData;
 
     private DatabaseHandler(Context context) {
         super(context, dbName, null, 1);
@@ -374,36 +373,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 
     /**
-     * method to return a list of 9 most used tags
+     * method to return a list of tags which have at least one associated content
      * @return arraylist<Tag>
      */
-    public ArrayList<Tag> getMostUsedTags(){
-        ArrayList<Tag> allTags = (ArrayList<Tag>)getTagData().clone();
+    public ArrayList<Tag> getUsedTags(){
         ArrayList<Tag> returnTags = new ArrayList<>();
 
-        for(int i = 0; i<9; i++){
-            int maxUseTimes = 0;
-            int index = 0;
-
-            for(int j = 0; j<allTags.size(); j++){
-                if(allTags.get(j)!=null){
-                    int useTimes = allTags.get(j).getAssociatedContent().size();
-                    if(useTimes > maxUseTimes) {
-                        maxUseTimes = useTimes;
-                        index = j;
-                    }
-                }
-            }
-
-
-            if (maxUseTimes == 0)
-                break;
-
-            returnTags.add(allTags.get(index));
-            // to remove selected max used tag from list
-            allTags.set(index, null);
+        for(Tag tag : tagData){
+            if(tag.getAssociatedContent().size() > 0 )
+                returnTags.add(tag);
         }
-
 
         return returnTags;
 
@@ -638,6 +617,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         smartContentHash = new HashMap<Long, SmartContent>();
         tagData = new ArrayList<Tag>();
         textContentHash = new HashMap<Long, TextContent>();
+        tagAccessData = new HashMap<>();
 
         // getting tags data
         SQLiteDatabase db = dbHandler.getReadableDatabase();
@@ -704,7 +684,41 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         if (cur != null)
             cur.close();
 
+        //getting the tag Access data
+        cur = db.rawQuery("SELECT * FROM " + tagAccessTable, null);
+        while (cur.moveToNext()){
+            Long tagId = cur.getLong(1);
+            Long timestamp = cur.getLong(2);
+
+            if(tagAccessData.get(tagId) == null)
+                tagAccessData.put(tagId, new ArrayList<Long>());
+            tagAccessData.get(tagId).add(timestamp);
+
+        }
+        if (cur != null)
+            cur.close();
+
         broadcastDBUpdated();
+    }
+
+    //#####******  NOT SO IMPORTANT, CAN BE OMITTED
+    public void updateTagAccessDataFromDB(){
+        tagAccessData = new HashMap<>();
+        //getting the tag Access data
+        SQLiteDatabase db = dbHandler.getReadableDatabase();
+        Cursor cur = db.rawQuery("SELECT * FROM " + tagAccessTable, null);
+        while (cur.moveToNext()){
+            Long tagId = cur.getLong(1);
+            Long timestamp = cur.getLong(2);
+
+            if(tagAccessData.get(tagId) == null)
+                tagAccessData.put(tagId, new ArrayList<Long>());
+            tagAccessData.get(tagId).add(timestamp);
+
+        }
+        if (cur != null)
+            cur.close();
+
     }
 
     /**
@@ -1065,5 +1079,24 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
 
         return returnList;
+    }
+
+    /**
+     * method to calculate and return the tag score based on the last access times
+     * and number of associated content
+     * @param tag
+     * @return score
+     */
+    public float getTagScore(Tag tag) {
+        float score = 0.0f;
+
+        score += 1.5f + Math.log10(tag.getAssociatedContent().size());
+
+        ArrayList<Long> timestamps = tagAccessData.get(tag.getTagId());
+        for(Long timestamp: timestamps){
+            score += 10 - Math.log10(System.currentTimeMillis() - timestamp);
+        }
+
+        return score;
     }
 }
