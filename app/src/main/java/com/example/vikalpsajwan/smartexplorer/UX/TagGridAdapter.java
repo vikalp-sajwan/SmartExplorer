@@ -1,5 +1,6 @@
 package com.example.vikalpsajwan.smartexplorer.UX;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
@@ -21,7 +22,7 @@ import java.util.ArrayList;
 public class TagGridAdapter extends BaseAdapter {
 
     private Context context;
-    private final ArrayList<Tag> tags;
+    private ArrayList<Tag> tags;
 
     public TagGridAdapter(Context context, ArrayList<Tag> tags){
         this.context = context;
@@ -104,17 +105,25 @@ public class TagGridAdapter extends BaseAdapter {
         tagButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Activity activity = (Activity)context;
+                if(activity instanceof MainActivity){
+                    Intent intent = new Intent(context, TagBasedSearchActivity.class);
+                    intent.putExtra("TagID", tags.get(position).getTagId());
+                    context.startActivity(intent);
+                }else{  // tag based search activity
+                    ((TagBasedSearchActivity) activity).performTagAddition(tags.get(position).getTagId());
+                }
 
-//                Toast.makeText(
-//                        context, tags.get(position).getTagName(), Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(context, TagBasedSearchActivity.class);
-                intent.putExtra("TagID", tags.get(position).getTagId());
-                context.startActivity(intent);
 
             }
         });
 
         return tagButton;
+    }
+
+    public void changeDataAndNotify(ArrayList<Tag> newData){
+        tags = newData;
+        this.notifyDataSetChanged();
     }
 
 //    public void performButtonClick(int position){

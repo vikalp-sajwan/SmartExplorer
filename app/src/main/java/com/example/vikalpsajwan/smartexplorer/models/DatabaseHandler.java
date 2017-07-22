@@ -1040,8 +1040,30 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public ArrayList<SmartContent> getAssociatedContent(long tagId){
         Tag tag = tagHash.get(tagId);
-        return tag.getAssociatedContent();
+        ArrayList<SmartContent> associatedContent = (ArrayList<SmartContent>)tag.getAssociatedContent().clone();
+        return associatedContent;
 
     }
 
+    /**
+     * returns the list of tags related to @param tag
+     * the relation here is that the tags are also used in the content in which @param tag is used
+     * @param tagId
+     * @return
+     */
+    public ArrayList<Tag> getRelatedTags(Long tagId) {
+        Tag tag = dbHandler.tagHash.get(tagId);
+        ArrayList<SmartContent> associatedContent = tag.getAssociatedContent();
+        ArrayList<Tag> returnList = new ArrayList<>();
+        for(SmartContent sc : associatedContent){
+            ArrayList<Tag> associatedTags = sc.getAssociatedTags();
+            for(Tag ascTag: associatedTags){
+                if(ascTag != tag && !returnList.contains(ascTag)){
+                    returnList.add(ascTag);
+                }
+            }
+        }
+
+        return returnList;
+    }
 }
