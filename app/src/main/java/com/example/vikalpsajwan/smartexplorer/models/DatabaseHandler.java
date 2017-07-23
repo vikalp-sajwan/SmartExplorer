@@ -213,7 +213,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 colTaTagId +
                 " INTEGER ," +
                 colTaTimeStamp +
-                " INTEGER " +
+                " INTEGER ," +
                 "FOREIGN KEY (" + colTaTagId + ") REFERENCES " + tagsTable + "(" + coltagId + ")" +
                 ")"
         );
