@@ -957,6 +957,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
             }
 
+            // update entry in tagAccess table
+            dbHandler.updateTagAccess(tagID);
+
             // make entry in contentTag table
             cv = new ContentValues();
             cv.put(DatabaseHandler.colCtContentId, sC.getContentID());
@@ -1093,9 +1096,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         score += 1.5f + Math.log10(tag.getAssociatedContent().size());
 
         ArrayList<Long> timestamps = tagAccessData.get(tag.getTagId());
-        for(Long timestamp: timestamps){
-            score += 10 - Math.log10(System.currentTimeMillis() - timestamp);
-        }
+
+//        if(timestamps!=null)
+            for(Long timestamp: timestamps)
+                score += 10 - Math.log10(System.currentTimeMillis() - timestamp);
 
         return score;
     }
