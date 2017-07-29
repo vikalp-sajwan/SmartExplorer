@@ -1,5 +1,6 @@
 package com.example.vikalpsajwan.smartexplorer.UX;
 
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -17,13 +18,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -33,6 +37,7 @@ import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
 import com.example.vikalpsajwan.smartexplorer.models.Tag;
+import com.google.android.flexbox.FlexboxLayout;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -47,6 +52,7 @@ import static android.widget.AdapterView.OnItemClickListener;
 public class MainActivity extends AppCompatActivity {
     ListView recentContentListView;
     GridView tagsGridView;
+    FlexboxLayout tagsFlexboxLayout;
     // data and adapter for recent content list
     ArrayList<SmartContent> sCData;
     FileListArrayAdapter flaa;
@@ -222,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
         //searchButton = (Button) findViewById(R.id.button);
         //actvTag = (AutoCompleteTextView) findViewById(actvTag);
         recentContentListView = (ListView) findViewById(R.id.recentContentListview);
-        tagsGridView = (GridView) findViewById(R.id.popularTagsGridView);
+        tagsFlexboxLayout = (FlexboxLayout) findViewById(R.id.popularTagsFlexbox);
 
         dbHandler = DatabaseHandler.getDBInstance(getApplicationContext());
         // dbHandler.dbResponse = this;
@@ -380,6 +386,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void populateTags() {
         ArrayList<Tag> usedTags = dbHandler.getUsedTags();
+        tagsFlexboxLayout.removeAllViews();
 
         float[] score = new float[usedTags.size()];
         for(int i = 0 ; i<usedTags.size(); i++){
@@ -402,9 +409,24 @@ public class MainActivity extends AppCompatActivity {
             score[maxIndex] = 0;
         }
 
+        LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        for(final Tag t: finalTagList){
+            final TextView tagButton;
 
-        final TagGridAdapter tagGridAdapter = new TagGridAdapter(this, finalTagList );
-        tagsGridView.setAdapter(tagGridAdapter);
+            tagButton = (TextView) inflater.inflate(R.layout.tag_item_flexbox, null);
+
+            tagButton.setText(t.getTagName());
+
+            tagButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(MainActivity.this, TagBasedSearchActivity.class);
+                    intent.putExtra("TagID", t.getTagId());
+                    startActivity(intent);
+                }
+            });
+            tagsFlexboxLayout.addView(tagButton);
+        }
 
     }
 
