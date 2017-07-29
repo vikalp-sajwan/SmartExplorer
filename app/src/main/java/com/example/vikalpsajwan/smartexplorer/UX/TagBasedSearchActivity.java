@@ -38,6 +38,7 @@ import com.example.vikalpsajwan.smartexplorer.models.AndroidDatabaseManager;
 import com.example.vikalpsajwan.smartexplorer.models.DatabaseHandler;
 import com.example.vikalpsajwan.smartexplorer.models.SmartContent;
 import com.example.vikalpsajwan.smartexplorer.models.Tag;
+import com.google.android.flexbox.FlexboxLayout;
 
 import java.util.ArrayList;
 
@@ -56,7 +57,7 @@ public class TagBasedSearchActivity extends AppCompatActivity {
     ActionBar mActionBar;
     LinearLayout tagChainContainer;
     ListView contentListView;
-    GridView tagsGridView;
+    FlexboxLayout tagsFlexbox;
     ArrayList<SmartContent> sCData;
     ArrayList<Tag> selectedTags;
     // the list of tags which are related to currently selected tags
@@ -66,7 +67,6 @@ public class TagBasedSearchActivity extends AppCompatActivity {
     FileListArrayAdapter flaa;
     // the first tag which was clicked and launched this activity
     long parentTagId;
-    TagGridAdapter tagGridAdapter;
 
     boolean isActivityVisible;
     boolean isDataSetChanged;
@@ -191,7 +191,7 @@ public class TagBasedSearchActivity extends AppCompatActivity {
 
         dbHandler = DatabaseHandler.getDBInstance(getApplicationContext());
         contentListView = (ListView) findViewById(R.id.contentListView);
-        tagsGridView = (GridView) findViewById(R.id.relatedTagsGridView);
+        tagsFlexbox = (FlexboxLayout) findViewById(R.id.relatedTagsFlexbox);
 
         mActionBar = getSupportActionBar(); //get the actionbar
 
@@ -213,8 +213,6 @@ public class TagBasedSearchActivity extends AppCompatActivity {
         relatedTagsScore = new ArrayList<>();
 
         performTagAddition(parentTagId);
-
-        calculateScoreAndSort();
 
         // Register to receive messages.
         // We are registering an observer (mMessageReceiver) to receive Intents
@@ -239,9 +237,6 @@ public class TagBasedSearchActivity extends AppCompatActivity {
          populateRelatedTags(tagId);
     }
 
-    private void calculateScoreAndSort() {
-    }
-
     /**
      * adds and inflates tag in the tag chain in action bar
      *
@@ -263,6 +258,7 @@ public class TagBasedSearchActivity extends AppCompatActivity {
     }
 
     private void populateRelatedTags(long tagId){
+        tagsFlexbox.removeAllViews();
         if (tagId == parentTagId) {
             relatedTags = dbHandler.getRelatedTags(tagId);
         } else {
@@ -302,12 +298,23 @@ public class TagBasedSearchActivity extends AppCompatActivity {
             score[maxIndex] = 0;
         }
 
-        if(tagId == parentTagId){
-            tagGridAdapter = new TagGridAdapter(this, tagGridTagList);
-            tagsGridView.setAdapter(tagGridAdapter);
-        }
-        else{
-            tagGridAdapter.changeDataAndNotify(tagGridTagList);
+
+        LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        for(final Tag t: tagGridTagList){
+            final TextView tagButton;
+
+            tagButton = (TextView) inflater.inflate(R.layout.tag_item_flexbox, null);
+
+            tagButton.setText(t.getTagName());
+
+            tagButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    performTagAddition(t.getTagId());
+                }
+            });
+
+            tagsFlexbox.addView(tagButton);
         }
     }
 

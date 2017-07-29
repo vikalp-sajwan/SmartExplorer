@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorAccent"
+    android:background="@android:color/white"
     android:orientation="vertical"
-    tools:context=".UX.TagBasedSearchActivity"
-    >
+    tools:context=".UX.TagBasedSearchActivity">
 
     <!--    Toolbar for showing menu    -->
     <include
@@ -16,7 +16,6 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/colorAccent"
         android:orientation="vertical">
 
 
@@ -29,13 +28,16 @@
             android:layout_weight="1"
             android:background="@android:color/background_light" />
 
-        <GridView
-            android:id="@+id/relatedTagsGridView"
+        <com.google.android.flexbox.FlexboxLayout
+            android:id="@+id/relatedTagsFlexbox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:numColumns="4"
-            android:gravity="center"
-            android:stretchMode="columnWidth"/>
+            android:layout_margin="4dp"
+            app:alignContent="stretch"
+            app:alignItems="stretch"
+            app:dividerDrawable="@drawable/flexbox_divider"
+            app:showDivider="beginning|end|middle"
+            app:flexWrap="wrap"/>
 
 
     </LinearLayout>
