@@ -56,7 +56,7 @@ public class FileListArrayAdapter extends ArrayAdapter<SmartContent> {
          if(sC != null){
 
              ContentTypeEnum ContentType = sC.getContentUnit().getContentType();
-            // sContentThumbOverlay.setVisibility(View.INVISIBLE);
+            // contentThumbOverlay.setVisibility(View.INVISIBLE);
 
              Drawable myDrawable;
 
