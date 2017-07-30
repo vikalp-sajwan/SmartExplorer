@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -33,11 +34,13 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.example.vikalpsajwan.smartexplorer.CustomComponents.SpaceMultiAutoCompleteTextView;
 import com.example.vikalpsajwan.smartexplorer.models.ContentTypeEnum;
 import com.example.vikalpsajwan.smartexplorer.models.ContentUnit;
@@ -58,6 +61,7 @@ import java.util.Date;
 import java.util.HashMap;
 
 import static android.widget.Toast.LENGTH_LONG;
+import static java.security.AccessController.getContext;
 
 /**
  * Created by Vikalp on 04/02/2017.
@@ -84,6 +88,8 @@ public class AddContentActivity extends AppCompatActivity {
 //    Button addTagButton;
     Button addContentButton;
     LinearLayout tagContainer;
+    ImageView contentThumb;
+    ImageView contentThumbOverlay;
     Spinner contentCategorySpinner;
     SpaceMultiAutoCompleteTextView descriptionMACTV;
     // HashMap of once removed tags by user and which are to be avoided when typed again in same session
@@ -106,6 +112,8 @@ public class AddContentActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == CAMERA_REQUEST_CODE && resultCode != Activity.RESULT_OK) {
             finish();
+        }else{
+            setupContentThumbnail(ContentTypeEnum.Image);
         }
 
     }
@@ -241,6 +249,29 @@ public class AddContentActivity extends AppCompatActivity {
                 mMode = EXTRA_MODE_FILE_SHARE;
         }
 
+        contentThumb = (ImageView)findViewById(R.id.content_thumb);
+        contentThumbOverlay = (ImageView)findViewById(R.id.content_thumb_overlay);
+        contentThumb.setImageDrawable(null);
+        Glide.clear(contentThumb);
+        contentThumbOverlay.setVisibility(View.INVISIBLE);
+
+        setupInterface(intent, bundle);
+
+            // getting runtime permission for reading storage on marshmallow and above
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this, "android.permission.WRITE_EXTERNAL_STORAGE") == PackageManager.PERMISSION_DENIED) {
+
+                requestPermissions(new String[]{"android.permission.WRITE_EXTERNAL_STORAGE"}, 1);
+            }
+        }
+
+
+        // command to trigger textchanged event for determination of filetype
+//        fileNameEditText.setText(fileNameEditText.getText());
+    }
+
+    private void setupInterface(Intent intent, Bundle bundle) {
+        String sharedText;
         if (mMode == EXTRA_MODE_IMAGE_CAPTURE) {
             contentCategorySpinner.setSelection(ContentTypeEnum.Image.ordinal(), true);
             contentCategorySpinner.setEnabled(false);
@@ -271,6 +302,7 @@ public class AddContentActivity extends AppCompatActivity {
             long sCID = intent.getLongExtra(EXTRA_CONTENT_ID, 0);
             SmartContent sC = dbHandler.getSmartContentHash().get(sCID);
             fileNameEditText.setText(sC.getContentName());
+            mUri = Uri.fromFile(new File(sC.getContentUnit().getContentAddress()));
 
             descriptionMACTV.removeTextChangedListener(mTextWatcher);
             descriptionMACTV.setText(sC.getContentDescription());
@@ -303,6 +335,7 @@ public class AddContentActivity extends AppCompatActivity {
                     editContent();
                 }
             });
+            setupContentThumbnail(sC.getContentUnit().getContentType());
         }
         // else implicit intent
         else {
@@ -340,6 +373,7 @@ public class AddContentActivity extends AppCompatActivity {
                     }
                 }
                 mUri = Uri.fromFile(noteFile);
+                setupContentThumbnail(ContentTypeEnum.Note);
             } else if (mMode == EXTRA_MODE_FILE_SHARE) {
 
                 mUri = (Uri) bundle.get(Intent.EXTRA_STREAM);
@@ -361,7 +395,7 @@ public class AddContentActivity extends AppCompatActivity {
                     returnCursor.close();
                 }
 
-                fileNameEditText.setText(fileName);
+
                 fileNameEditText.addTextChangedListener(new TextWatcher() {
                     @Override
                     public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -391,26 +425,44 @@ public class AddContentActivity extends AppCompatActivity {
                     }
 
                 });
+                fileNameEditText.setText(fileName);
+                setupContentThumbnail(ContentTypeEnum.enumFromInt(contentCategorySpinner.getSelectedItemPosition()));
 
             }
 
 
         }
-
-        // getting runtime permission for reading storage on marshmallow and above
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(this, "android.permission.WRITE_EXTERNAL_STORAGE") == PackageManager.PERMISSION_DENIED) {
-
-                requestPermissions(new String[]{"android.permission.WRITE_EXTERNAL_STORAGE"}, 1);
-            }
-        }
-
-
-        // command to trigger textchanged event for determination of filetype
-        fileNameEditText.setText(fileNameEditText.getText());
-
     }
 
+    private void setupContentThumbnail(ContentTypeEnum contentType){
+        Drawable myDrawable;
+
+        if( contentType == ContentTypeEnum.Image || contentType == ContentTypeEnum.Video) {
+            Glide.with(this)
+                    .load(mUri)
+                    .thumbnail(0.1f)
+                    .centerCrop().
+                    into(contentThumb);
+            if( contentType == ContentTypeEnum.Video){
+                contentThumbOverlay.setVisibility(View.VISIBLE);
+            }
+        }
+        else {
+            if (contentType == ContentTypeEnum.Audio) {
+                myDrawable = ContextCompat.getDrawable(this, R.mipmap.ic_audio);
+            } else if (contentType == ContentTypeEnum.Document) {
+                myDrawable = ContextCompat.getDrawable(this, R.mipmap.ic_document);
+            }else if (contentType == ContentTypeEnum.Note) {
+                myDrawable = ContextCompat.getDrawable(this, R.mipmap.ic_note);
+            }else if (contentType == ContentTypeEnum.Location) {
+                myDrawable = ContextCompat.getDrawable(this, R.mipmap.ic_location);
+            }else{
+                myDrawable = ContextCompat.getDrawable(this, R.mipmap.ic_other);
+            }
+            contentThumb.setImageDrawable(myDrawable);
+        }
+
+    }
 
     // called on pressing the save button in edit content mode
     private void editContent() {
@@ -635,35 +687,6 @@ public class AddContentActivity extends AppCompatActivity {
         return fileName.substring(fileName.lastIndexOf(".") + 1);
     }
 
-//    // function called on clicking the add tag searchButton
-//    public void addTag(View view) {
-//        String tagName = tagAutoCompleteTextView.getText().toString().trim();
-//        if (!tagName.isEmpty()) {
-//            //mfileTags.add(tagName);
-//            if (addedTags.get(tagName) == null)
-//                addedTags.put(tagName, true);
-//            else
-//                return;
-//            LayoutInflater li = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-//            LinearLayout ll = (LinearLayout) li.inflate(R.layout.tag_item_with_choice, tagContainer, false);
-//            long tagId = dbHandler.isTagPresent(tagName);
-//            if (tagId != -1) {
-//                // disable the checkbox for already existing tags
-//                CheckBox cb = (CheckBox) ll.getChildAt(2);
-//
-//                if (dbHandler.getTagHash().get(tagId).isUniqueContent()) {
-//                    ll.getChildAt(0).setBackgroundColor(Color.parseColor("#cf2376"));
-//                    cb.setChecked(true);
-//                }
-//            }
-//            TextView tv = (TextView) ll.getChildAt(0);
-//            tv.setText(tagName);
-//            tagContainer.addView(ll);
-//        } else {
-//            Toast.makeText(getApplicationContext(), "please enter valid tag name", Toast.LENGTH_SHORT);
-//        }
-//        tagAutoCompleteTextView.setText("");
-//    }
 
     // function to add tag
     public void addTagInContainer(String tagName) {

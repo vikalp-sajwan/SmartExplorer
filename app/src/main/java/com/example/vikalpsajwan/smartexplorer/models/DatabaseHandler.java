@@ -978,18 +978,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /**
-     * return the last 7 entries of SmartContent data
+     * return the last 10 entries of SmartContent data
      *
      * @return
      */
     public ArrayList<SmartContent> getRecentContentData() {
         ArrayList<SmartContent> result = new ArrayList<SmartContent>();
-        if (smartContentData.size() <= 7) {
+        if (smartContentData.size() <= 10) {
             for (int i = smartContentData.size() - 1; i >= 0; i--) {
                 result.add(smartContentData.get(i));
             }
         } else {   //return 7 last entries
-            for (int i = smartContentData.size() - 1; i >= smartContentData.size() - 7; i--) {
+            for (int i = smartContentData.size() - 1; i >= smartContentData.size() - 10; i--) {
                 result.add(smartContentData.get(i));
             }
         }

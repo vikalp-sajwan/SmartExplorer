@@ -9,68 +9,91 @@
     tools:context=".UX.AddContentActivity"
     android:padding="8dp">
 
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
 
+            <EditText
+                android:id="@+id/filenameEditText"
+                style="@style/Widget.AppCompat.EditText"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_weight="7"
+                android:background="@drawable/rounded_corner"
+                android:hint="@string/title"
+                android:inputType="text"
+                android:maxLines="1"
+                android:padding="8dp"
+                android:textSize="16sp" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:orientation="horizontal">
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="42dp"
+                android:layout_marginLeft="0dp"
+                android:layout_marginRight="5dp"
+                android:layout_weight="5"
+                android:background="@drawable/rounded_corner">
 
-                <EditText
-                    android:id="@+id/filenameEditText"
-                    style="@style/Widget.AppCompat.EditText"
-                    android:layout_width="0dp"
+                <Spinner
+                    android:id="@+id/contentCategorySpinner"
+                    android:layout_width="match_parent"
+
                     android:layout_height="match_parent"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="7"
-                    android:background="@drawable/rounded_corner"
-                    android:hint="@string/title"
-                    android:inputType="text"
-                    android:maxLines="1"
-                    android:padding="8dp"
-                    android:textSize="16sp" />
-
-                <FrameLayout
-                    android:layout_width="0dp"
-                    android:layout_height="42dp"
-                    android:layout_marginLeft="0dp"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="5"
-                    android:background="@drawable/rounded_corner">
-
-                    <Spinner
-                        android:id="@+id/contentCategorySpinner"
-                        android:layout_width="match_parent"
-
-                        android:layout_height="match_parent"
-                        android:spinnerMode="dialog" />
-                </FrameLayout>
+                    android:spinnerMode="dialog" />
+            </FrameLayout>
 
 
-            </LinearLayout>
+        </LinearLayout>
 
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/height_divider"
-                android:background="@color/divider"
-                android:layout_marginTop="@dimen/material_generic"
-                android:layout_marginBottom="@dimen/material_generic" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/height_divider"
+            android:layout_marginBottom="@dimen/material_generic"
+            android:layout_marginTop="@dimen/material_generic"
+            android:background="@color/divider"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+
+                <ImageView
+                    android:id="@+id/content_thumb"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp" />
+
+                <ImageView
+                    android:id="@+id/content_thumb_overlay"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center"
+
+                    android:src="@drawable/ic_play_arrow_black_24dp"
+                    android:visibility="invisible"
+                    tools:ignore="ContentDescription" />
+
+            </FrameLayout>
 
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="42dp"
+                android:layout_height="match_parent"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp"
                 android:background="@drawable/rounded_corner">
@@ -82,30 +105,38 @@
 
 
                     android:hint="@string/description"
-                    android:inputType="text"
-                    android:lines="1"
-                    android:maxLines="1"
+                    android:inputType="textMultiLine"
+                    android:lines="3"
+                    android:maxLength="100"
+                    android:maxLines="3"
+                    android:singleLine="false"
                     android:textSize="16sp" />
             </FrameLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/height_divider"
-                android:background="@color/divider"
-                android:layout_marginTop="@dimen/material_generic"
-                android:layout_marginBottom="@dimen/material_generic" />
-
-            <LinearLayout
-                android:id="@+id/tag_container"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginLeft="5dp"
-                android:layout_marginRight="5dp"
-                android:layout_weight="1"
-                android:animateLayoutChanges="true"
-                android:orientation="vertical" />
         </LinearLayout>
+
+    </LinearLayout>
+
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/height_divider"
+        android:layout_marginBottom="@dimen/material_generic"
+        android:layout_marginTop="@dimen/material_generic"
+        android:background="@color/divider" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+        <LinearLayout
+            android:id="@+id/tag_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:animateLayoutChanges="true"
+            android:orientation="vertical"/>
     </ScrollView>
+
 
     <Button
         android:id="@+id/addFileButton"
