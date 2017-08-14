@@ -1097,7 +1097,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         ArrayList<Long> timestamps = tagAccessData.get(tag.getTagId());
 
-//        if(timestamps!=null)
+        if(timestamps!=null)
             for(Long timestamp: timestamps)
                 score += 10 - Math.log10(System.currentTimeMillis() - timestamp);
 

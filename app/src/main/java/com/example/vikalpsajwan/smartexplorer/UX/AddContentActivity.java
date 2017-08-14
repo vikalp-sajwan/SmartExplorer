@@ -27,6 +27,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -583,6 +584,12 @@ public class AddContentActivity extends AppCompatActivity {
      * @param view
      */
     public void addContentCheck(View view) {
+        //add a space in last to add the last typed word as tag
+        descriptionMACTV.dispatchKeyEvent(new KeyEvent(0, 0, KeyEvent.ACTION_DOWN,
+                KeyEvent.KEYCODE_SPACE, 0));
+        descriptionMACTV.dispatchKeyEvent(new KeyEvent(0, 0, KeyEvent.ACTION_UP,
+                KeyEvent.KEYCODE_SPACE, 0));
+
         // check if the external storage is mounted
         if (!isExternalStorageWritable()) {
             Toast.makeText(getApplicationContext(), "External Storage not Mounted !! Try again later.", LENGTH_LONG).show();
