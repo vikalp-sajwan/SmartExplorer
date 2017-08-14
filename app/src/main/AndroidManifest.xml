@@ -3,7 +3,7 @@
 <!--android:theme in application tag prevents the app from using the native ActionBar class to provide the app bar-->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.vikalpsajwan.smartexplorer">
+    package="in.snapnsave">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
@@ -18,7 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name=".UX.MainActivity">
+        <activity android:name="in.snapnsave.UX.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -27,7 +27,7 @@
 
         </activity>
 
-        <activity android:name=".UX.AddContentActivity">
+        <activity android:name="in.snapnsave.UX.AddContentActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -35,25 +35,25 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".UX.FilesListActivity"/>
+        <activity android:name="in.snapnsave.UX.FilesListActivity"/>
 
           <!--  <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>-->
 
 
-        <activity android:name=".UX.ViewNoteActivity"/>
+        <activity android:name="in.snapnsave.UX.ViewNoteActivity"/>
 
-        <activity android:name=".UX.SearchActivity"/>
+        <activity android:name="in.snapnsave.UX.SearchActivity"/>
 
-        <activity android:name=".UX.InMemoryElementsActivity"/>
+        <activity android:name="in.snapnsave.UX.InMemoryElementsActivity"/>
 
-        <activity android:name=".models.AndroidDatabaseManager"
+        <activity android:name="in.snapnsave.models.AndroidDatabaseManager"
             android:theme="@style/Theme.AppCompat.Light"/>
 
-        <activity android:name=".UX.TagBasedSearchActivity"/>
+        <activity android:name="in.snapnsave.UX.TagBasedSearchActivity"/>
 
-        <activity android:name=".UX.ViewContentActivity"/>
+        <activity android:name="in.snapnsave.UX.ViewContentActivity"/>
 
     </application>
 

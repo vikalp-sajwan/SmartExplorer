@@ -96,7 +96,7 @@
                 android:layout_marginRight="5dp"
                 android:background="@drawable/rounded_corner">
 
-                <com.example.vikalpsajwan.smartexplorer.CustomComponents.SpaceMultiAutoCompleteTextView
+                <in.snapnsave.CustomComponents.SpaceMultiAutoCompleteTextView
                     android:id="@+id/description_mactv"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"

@@ -6,7 +6,7 @@
     android:orientation="horizontal">
 
 
-    <com.example.vikalpsajwan.smartexplorer.CustomComponents.SpaceMultiAutoCompleteTextView
+    <in.snapnsave.CustomComponents.SpaceMultiAutoCompleteTextView
         android:id="@+id/search_mactv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
