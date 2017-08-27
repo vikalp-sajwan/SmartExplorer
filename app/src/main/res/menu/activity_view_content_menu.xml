@@ -33,12 +33,14 @@
         android:id="@+id/action_show_memory_elements"
         android:orderInCategory="400"
         android:title="Show Memory (TEST)"
+        android:visible="false"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_show_sql_db"
         android:orderInCategory="500"
         android:title="Show SQLite (TEST)"
+        android:visible="false"
         app:showAsAction="never" />
 
 

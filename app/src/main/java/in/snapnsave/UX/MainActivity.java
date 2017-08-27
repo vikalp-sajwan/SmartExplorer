@@ -36,11 +36,6 @@ import com.google.android.flexbox.FlexboxLayout;
 
 import java.util.ArrayList;
 
-import in.snapnsave.UX.AddContentActivity;
-import in.snapnsave.UX.FileListArrayAdapter;
-import in.snapnsave.UX.FilesListActivity;
-import in.snapnsave.UX.InMemoryElementsActivity;
-
 import static android.widget.AdapterView.AdapterContextMenuInfo;
 import static android.widget.AdapterView.OnItemClickListener;
 
@@ -55,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
     // data and adapter for recent content list
     ArrayList<SmartContent> sCData;
     FileListArrayAdapter flaa;
+
+    TextView recentContentTV, mostUsedTagsTV;
 
     // GUI elements layout 1
     //EditText searchEditText;
@@ -235,6 +232,9 @@ public class MainActivity extends AppCompatActivity {
        // ArrayList<String> autoCompleteTagList = dbHandler.getTagNames();
        // ArrayAdapter<String> autoCompleteAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, autoCompleteTagList);
 
+        recentContentTV = (TextView) findViewById(R.id.recentContentTV);
+        mostUsedTagsTV = (TextView) findViewById(R.id.mostUsedTagsTV);
+
         populateRecentContent();
 
         populateTags();
@@ -332,12 +332,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void updateRecentContent(){
-        sCData = dbHandler.getRecentContentData();
-        flaa.notifyDataSetChanged();
-
-    }
-
     /**
      * method to load and populate the recent 7 contents in a list
      */
@@ -345,6 +339,10 @@ public class MainActivity extends AppCompatActivity {
         recentContentListView.setAdapter(null);
 
         sCData = dbHandler.getRecentContentData();
+//        if(sCData.size() == 0)
+//            recentContentTV.setVisibility(View.INVISIBLE);
+//        else
+//            recentContentTV.setVisibility(View.VISIBLE);
 
         flaa = new FileListArrayAdapter(this, R.layout.smart_content_list_item, sCData);
         recentContentListView.setAdapter(flaa);
@@ -386,6 +384,15 @@ public class MainActivity extends AppCompatActivity {
     private void populateTags() {
         ArrayList<Tag> usedTags = dbHandler.getUsedTags();
         tagsFlexboxLayout.removeAllViews();
+
+        if(usedTags.size() == 0) {
+            mostUsedTagsTV.setVisibility(View.INVISIBLE);
+            tagsFlexboxLayout.setVisibility(View.INVISIBLE);
+        }
+        else {
+            mostUsedTagsTV.setVisibility(View.VISIBLE);
+            tagsFlexboxLayout.setVisibility(View.VISIBLE);
+        }
 
         float[] score = new float[usedTags.size()];
         for(int i = 0 ; i<usedTags.size(); i++){

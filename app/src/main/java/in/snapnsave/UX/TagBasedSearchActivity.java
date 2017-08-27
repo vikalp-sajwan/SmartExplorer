@@ -60,6 +60,7 @@ public class TagBasedSearchActivity extends AppCompatActivity {
     // the score of relatedTags on the respective index
     ArrayList<Float> relatedTagsScore;
     FileListArrayAdapter flaa;
+    TextView relatedTagsTV;
     // the first tag which was clicked and launched this activity
     long parentTagId;
 
@@ -183,6 +184,7 @@ public class TagBasedSearchActivity extends AppCompatActivity {
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
 
+        relatedTagsTV = (TextView)findViewById(R.id.relatedTagsTV);
 
         dbHandler = DatabaseHandler.getDBInstance(getApplicationContext());
         contentListView = (ListView) findViewById(R.id.contentListView);
@@ -293,7 +295,14 @@ public class TagBasedSearchActivity extends AppCompatActivity {
             score[maxIndex] = 0;
         }
 
-
+        if(tagGridTagList.size() == 0) {
+            relatedTagsTV.setVisibility(INVISIBLE);
+            tagsFlexbox.setVisibility(INVISIBLE);
+        }
+        else {
+            relatedTagsTV.setVisibility(VISIBLE);
+            tagsFlexbox.setVisibility(VISIBLE);
+        }
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         for(final Tag t: tagGridTagList){
             final TextView tagButton;

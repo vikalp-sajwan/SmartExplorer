@@ -28,16 +28,28 @@
             android:layout_weight="1"
             android:background="@android:color/background_light" />
 
+        <TextView
+            android:id="@+id/relatedTagsTV"
+            style="@android:style/Widget.TextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#999999"
+            android:text="Related Tags"
+            android:textAlignment="center"
+            android:textAppearance="@style/TextAppearance.AppCompat.Inverse"
+            android:visibility="invisible"/>
+
         <com.google.android.flexbox.FlexboxLayout
             android:id="@+id/relatedTagsFlexbox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="4dp"
+            android:padding="4dp"
             app:justifyContent="center"
             app:alignItems="stretch"
             app:dividerDrawable="@drawable/flexbox_divider"
             app:showDivider="middle"
-            app:flexWrap="wrap"/>
+            app:flexWrap="wrap"
+            android:background="#bbbbbb"/>
 
 
 

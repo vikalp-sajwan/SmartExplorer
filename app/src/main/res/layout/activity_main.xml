@@ -5,41 +5,68 @@
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:backgroundTint="@android:color/white"
     android:orientation="vertical"
     tools:context=".UX.MainActivity">
 
 
     <include
         android:id="@+id/toolbar"
-        layout="@layout/toolbar"/>
+        layout="@layout/toolbar" />
 
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@android:color/white"
+        android:backgroundTint="@android:color/white"
         android:orientation="vertical">
 
         <!--    Button for third party database viewing feature    -->
+
+        <TextView
+            android:id="@+id/recentContentTV"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#999999"
+            android:elevation="1dp"
+            android:text="Recent Content"
+            android:textAlignment="center"
+            android:textAppearance="@style/TextAppearance.AppCompat.Inverse"
+            android:visibility="gone" />
 
         <ListView
             android:id="@+id/recentContentListview"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginTop="5dp"
+            android:layout_marginBottom="2dp"
+            android:layout_marginTop="2dp"
             android:layout_weight="1"
             android:background="@android:color/background_light" />
+
+        <TextView
+            android:id="@+id/mostUsedTagsTV"
+            style="@android:style/Widget.TextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#999999"
+            android:text="Most Used Tags"
+            android:textAlignment="center"
+            android:textAppearance="@style/TextAppearance.AppCompat.Inverse"
+            android:visibility="invisible"/>
 
         <com.google.android.flexbox.FlexboxLayout
             android:id="@+id/popularTagsFlexbox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            app:justifyContent="center"
+            android:padding="4dp"
             app:alignItems="stretch"
             app:dividerDrawable="@drawable/flexbox_divider"
+            app:flexWrap="wrap"
+            app:justifyContent="center"
             app:showDivider="middle"
-            app:flexWrap="wrap"/>
+            android:background="#bbbbbb"/>
 
 
     </LinearLayout>

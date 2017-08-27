@@ -466,12 +466,17 @@ public class AddContentActivity extends AppCompatActivity {
 
     // called on pressing the save button in edit content mode
     private void editContent() {
+        //add a space in last to add the last typed word as tag
+        descriptionMACTV.dispatchKeyEvent(new KeyEvent(0, 0, KeyEvent.ACTION_DOWN,
+                KeyEvent.KEYCODE_SPACE, 0));
+        descriptionMACTV.dispatchKeyEvent(new KeyEvent(0, 0, KeyEvent.ACTION_UP,
+                KeyEvent.KEYCODE_SPACE, 0));
         Intent intent = getIntent();
         long currentSCID = intent.getLongExtra(EXTRA_CONTENT_ID, 0);
 
         final long contentID = getIntent().getLongExtra(EXTRA_CONTENT_ID, 0);
         final String fileName = fileNameEditText.getText().toString().trim();
-        final String contentDescription = descriptionMACTV.getText().toString();
+        final String contentDescription = descriptionMACTV.getText().toString().trim();
 
         if (!isFilenameValid(fileName)) {
             Toast.makeText(getApplicationContext(), "please enter valid file name", Toast.LENGTH_SHORT);
@@ -661,7 +666,7 @@ public class AddContentActivity extends AppCompatActivity {
         ContentTypeEnum contentType = ContentTypeEnum.enumFromInt(contentCategorySpinner.getSelectedItemPosition());
 
         String fileName = fileNameEditText.getText().toString().trim();
-        String contentDescription = descriptionMACTV.getText().toString();
+        String contentDescription = descriptionMACTV.getText().toString().trim();
         if (contentType == ContentTypeEnum.Note || isFilenameValid(fileName)) {
             if (contentType == ContentTypeEnum.Note) {
                 fileName = fileName.concat(".txt");
